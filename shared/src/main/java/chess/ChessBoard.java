@@ -62,6 +62,14 @@ public class ChessBoard {
         }
     }
 
+    public boolean canMoveTo(ChessGame.TeamColor movingPieceColor, ChessPosition target) {
+        if (piecesMap.get(target) != null) {
+            //If there's a piece here
+            //NOT FINISHED YET
+        }
+        return true;
+    }
+
     private HashMap<ChessPosition, ChessPiece> piecesMap = new HashMap<>();
 
     @Override
