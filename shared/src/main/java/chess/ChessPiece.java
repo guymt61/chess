@@ -77,7 +77,17 @@ public class ChessPiece {
 
     private boolean canMoveTo(ChessBoard board, ChessPosition destination) {
         //Returns true if destination on board is empty or contains a piece of the other color.
+        //Returns false if position is not on board or contains a friendly piece
         //Doesn't check if the piece can legally get there, that logic will be handled by pieceMoves
+        //Doesn't work for pawns
+        int row = destination.getRow();
+        int col = destination.getColumn();
+        if (row < 1 | row > 8) {
+            return false;
+        }
+        if (col < 1 | col > 8) {
+            return false;
+        }
         if (board.getPiece(destination) != null) {
             //Space contains a piece
             //Return true if this.myColor is different from that piece's color
@@ -331,7 +341,52 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not Implemented Yet");
+        HashSet<ChessMove> legalMoves = new HashSet<>();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        ChessPosition destination;
+        //Left 2 up 1
+        destination = new ChessPosition(row + 1, col - 2);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Left 1 up 2
+        destination = new ChessPosition(row + 2, col - 1);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Right 1 up 2
+        destination = new ChessPosition(row + 2, col + 1);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Right 2 up 1
+        destination = new ChessPosition(row + 1, col + 2);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+
+        //Right 2 down 1
+        destination = new ChessPosition(row - 1, col + 2);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Right 1 down 2
+        destination = new ChessPosition(row - 2, col + 1);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Left 1 down 2
+        destination = new ChessPosition(row - 2, col - 1);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Left 2 down 1
+        destination = new ChessPosition(row - 1, col - 2);
+        if (this.canMoveTo(board, destination)) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        return legalMoves;
     }
 
     private Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition) {
@@ -393,7 +448,144 @@ public class ChessPiece {
     }
 
     private Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not Implemented Yet");
+        //Cannot use the ChessPiece.canMoveTo method because of pawn special rules
+        return switch (myColor) {
+            case WHITE -> whitePawnMoves(board, myPosition);
+            case BLACK -> blackPawnMoves(board, myPosition);
+        };
+
+    }
+
+    private Collection<ChessMove> whitePawnMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> legalMoves = new HashSet<>();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        ChessPosition destination;
+        //If row == 8, pawn cannot move
+        if (row == 8) {
+            return legalMoves;
+        }
+        //Basic move forward (non-promotion)
+        destination = new ChessPosition(row + 1, col);
+        if (row < 7 & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Basic move forward (with promotion)
+        if (row == 7 & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+        }
+        //Basic Captures (non-promotion)
+        destination = new ChessPosition(row + 1, col - 1);
+        //Must not be on left-most column, not be one row below top, and space must be occupied by an enemy piece.
+        if (col != 1 & row < 7 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                legalMoves.add(new ChessMove(myPosition, destination, null));
+            }
+        }
+        destination = new ChessPosition(row + 1, col + 1);
+        //Must not be on right-most column, not be one row below top, and space must be occupied by an enemy piece.
+        if (col != 8 & row < 7 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                legalMoves.add(new ChessMove(myPosition, destination, null));
+            }
+        }
+        //Basic Captures (with promotion)
+        destination = new ChessPosition(row + 1, col - 1);
+        //Must not be on left-most column, be one row below top, and space must be occupied by an enemy piece.
+        if (col != 1 & row == 7 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+            }
+        }
+        destination = new ChessPosition(row + 1, col + 1);
+        //Must not be on right-most column, be one row below top, and space must be occupied by an enemy piece.
+        if (col != 8 & row == 7 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.BLACK) {
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+            }
+        }
+        //Initial double-move (can only be performed from row 2, will never promote). Both spaces ahead must be empty.
+        //Option of just advancing by 1 space handled above
+        destination = new ChessPosition(row + 2, col);
+        if (row == 2 & board.getPiece(new ChessPosition(row + 1, col)) == null & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        return legalMoves;
+    }
+
+    private Collection<ChessMove> blackPawnMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> legalMoves = new HashSet<>();
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        ChessPosition destination;
+        //If row == 1, pawn cannot move
+        if (row == 1) {
+            return legalMoves;
+        }
+        //Basic move forward (non-promotion)
+        destination = new ChessPosition(row - 1, col);
+        if (row > 2 & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        //Basic move forward (with promotion)
+        if (row == 2 & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+            legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+        }
+        //Basic Captures (non-promotion)
+        destination = new ChessPosition(row - 1, col - 1);
+        //Must not be on left-most column, not be one row above bottom, and space must be occupied by an enemy piece.
+        if (col != 1 & row > 2 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                legalMoves.add(new ChessMove(myPosition, destination, null));
+            }
+        }
+        destination = new ChessPosition(row - 1, col + 1);
+        //Must not be on right-most column, not be one row above bottom, and space must be occupied by an enemy piece.
+        if (col != 8 & row > 2 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                legalMoves.add(new ChessMove(myPosition, destination, null));
+            }
+        }
+        //Basic Captures (with promotion)
+        destination = new ChessPosition(row - 1, col - 1);
+        //Must not be on left-most column, be one row above bottom, and space must be occupied by an enemy piece.
+        if (col != 1 & row == 2 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+            }
+        }
+        destination = new ChessPosition(row - 1, col + 1);
+        //Must not be on right-most column, be one row above bottom, and space must be occupied by an enemy piece.
+        if (col != 8 & row == 2 & board.getPiece(destination) != null) {
+            if (board.getPiece(destination).getTeamColor() == ChessGame.TeamColor.WHITE) {
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.QUEEN));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.ROOK));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.BISHOP));
+                legalMoves.add(new ChessMove(myPosition, destination, PieceType.KNIGHT));
+            }
+        }
+        //Initial double-move (can only be performed from row 7, will never promote). Both spaces ahead must be empty.
+        //Option of just advancing by 1 space handled above
+        destination = new ChessPosition(row - 2, col);
+        if (row == 7 & board.getPiece(new ChessPosition(row - 1, col)) == null & board.getPiece(destination) == null) {
+            legalMoves.add(new ChessMove(myPosition, destination, null));
+        }
+        return legalMoves;
     }
 
     private final ChessGame.TeamColor myColor;
