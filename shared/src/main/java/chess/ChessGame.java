@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -11,14 +12,16 @@ import java.util.Collection;
 public class ChessGame {
 
     public ChessGame() {
-
+        this.gameBoard = new ChessBoard();
+        gameBoard.resetBoard();
+        this.currentTurn = ChessGame.TeamColor.WHITE;
     }
 
     /**
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        throw new RuntimeException("Not implemented");
+        return this.currentTurn;
     }
 
     /**
@@ -27,7 +30,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        throw new RuntimeException("Not implemented");
+        this.currentTurn = team;
     }
 
     /**
@@ -46,7 +49,15 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        throw new RuntimeException("Implementation incomplete");
+
+        if (this.gameBoard.getPiece(startPosition) == null) {
+            return null;
+        }
+        HashSet<ChessMove> legalMoves = new HashSet<>();
+
+
+        return legalMoves;
     }
 
     /**
@@ -66,7 +77,20 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        HashSet<ChessPosition> allUnderAttack = new HashSet<>();
+        ChessPosition kingPosition;
+        for (int i = 1; i <= 8; i++) {
+            for(int j = 1; j <= 8; j++) {
+                ChessPosition targetPosition = new ChessPosition(i, j);
+                ChessPiece targetPiece = this.gameBoard.getPiece(targetPosition);
+                if (targetPiece == null) {
+                    continue;
+                }
+                if (targetPiece.getPieceType() == ChessPiece.PieceType.KING & targetPiece.getTeamColor() == teamColor) {
+                    kingPosition = targetPosition;
+                }
+            }
+        }
     }
 
     /**
@@ -96,7 +120,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        this.gameBoard = board;
     }
 
     /**
@@ -105,6 +129,9 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return this.gameBoard;
     }
+
+    private ChessBoard gameBoard;
+    private ChessGame.TeamColor currentTurn;
 }
