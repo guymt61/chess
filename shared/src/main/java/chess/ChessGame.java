@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -49,7 +50,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Implementation incomplete");
+        //throw new RuntimeException("Implementation incomplete");
 
         if (this.gameBoard.getPiece(startPosition) == null) {
             return null;
@@ -78,7 +79,7 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         HashSet<ChessPosition> allUnderAttack = new HashSet<>();
-        ChessPosition kingPosition;
+        ChessPosition kingPosition = null;
         for (int i = 1; i <= 8; i++) {
             for(int j = 1; j <= 8; j++) {
                 ChessPosition targetPosition = new ChessPosition(i, j);
@@ -86,11 +87,20 @@ public class ChessGame {
                 if (targetPiece == null) {
                     continue;
                 }
-                if (targetPiece.getPieceType() == ChessPiece.PieceType.KING & targetPiece.getTeamColor() == teamColor) {
+                ChessPiece.PieceType targetPieceType = targetPiece.getPieceType();
+                if (targetPieceType == ChessPiece.PieceType.KING & targetPiece.getTeamColor() == teamColor) {
                     kingPosition = targetPosition;
+                }
+                else if (targetPiece.getTeamColor() != teamColor) {
+                    Collection<ChessMove> targetPieceMoves = targetPiece.pieceMoves(gameBoard, targetPosition);
+                    for (Iterator<ChessMove> moveIt = targetPieceMoves.iterator(); moveIt.hasNext();) {
+                        ChessMove move = moveIt.next();
+                        allUnderAttack.add(move.getEndPosition());
+                    }
                 }
             }
         }
+        return allUnderAttack.contains(kingPosition);
     }
 
     /**
