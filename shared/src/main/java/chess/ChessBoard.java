@@ -11,6 +11,13 @@ import java.util.Objects;
 public class ChessBoard {
 
     public ChessBoard() {
+        piecesMap = new HashMap<>();
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition destination = new ChessPosition(i, j);
+                piecesMap.put(destination, null);
+            }
+        }
     }
 
     /**
@@ -63,7 +70,7 @@ public class ChessBoard {
     }
 
 
-    private HashMap<ChessPosition, ChessPiece> piecesMap = new HashMap<>();
+    private HashMap<ChessPosition, ChessPiece> piecesMap;
 
     @Override
     public boolean equals(Object o) {
