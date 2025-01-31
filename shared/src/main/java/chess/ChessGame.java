@@ -14,9 +14,11 @@ import java.util.Objects;
 public class ChessGame {
 
     public ChessGame() {
-        this.gameBoard = new ChessBoard();
+        gameBoard = new ChessBoard();
         gameBoard.resetBoard();
-        this.currentTurn = ChessGame.TeamColor.WHITE;
+        currentTurn = ChessGame.TeamColor.WHITE;
+        lastMove = null;
+        lastMovingPiece = null;
     }
 
     /**
@@ -82,6 +84,36 @@ public class ChessGame {
             this.forceMove(new ChessMove(destination, startPosition, null));
             gameBoard.addPiece(destination, aboutToGetCaptured);
         }
+        //Check for En Passant
+        if (lastMovingPiece != null) {
+            if (lastMovingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                int movedFromRow = lastMove.getStartPosition().getRow();
+                int movedToRow = lastMove.getEndPosition().getRow();
+                int movedInCol = lastMove.getStartPosition().getColumn();
+                if (Math.abs(movedFromRow - movedToRow) == 2) {
+                    //We now know that the last move was a pawn double move
+                    if (startPosition.getRow() == movedToRow && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                        if (Math.abs(startPosition.getColumn() - movedInCol) == 1) {
+                            //We now know there is a pawn in the right place to En Passant, not necessarily of the right team
+                            if (lastMovingPiece.getTeamColor() == TeamColor.WHITE && movingPiece.getTeamColor() == TeamColor.BLACK) {
+                                //En passant on a white piece will be down and to the side
+                                ChessPosition destination = new ChessPosition(movedToRow - 1, movedInCol);
+                                ChessMove enPassant = new ChessMove(startPosition, destination, null);
+                                forceMove(enPassant);
+                                if (!isInCheck(movingPiece.getTeamColor())) {
+                                    legalMoves.add(enPassant);
+                                }
+                                forceMove(new ChessMove(destination, startPosition, null));
+                            }
+                            if (lastMovingPiece.getTeamColor() == TeamColor.BLACK && movingPiece.getTeamColor() == TeamColor.WHITE) {
+                                //En passant on a black piece will be up and to the side
+                                legalMoves.add(new ChessMove(startPosition, new ChessPosition(movedToRow + 1, movedInCol), null));
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return legalMoves;
     }
 
@@ -119,6 +151,7 @@ public class ChessGame {
         else {
             this.setTeamTurn(TeamColor.WHITE);
         }
+        lastMove = move;
     }
 
     /**
@@ -237,4 +270,6 @@ public class ChessGame {
 
     private ChessBoard gameBoard;
     private ChessGame.TeamColor currentTurn;
+    private ChessMove lastMove;
+    private ChessPiece lastMovingPiece;
 }
