@@ -109,7 +109,9 @@ public class ChessGame {
             gameBoard.addPiece(startPosition, null);
         }
         else {
-            throw new RuntimeException("Promoting moves not implemented yet");
+            ChessPiece promotedPiece = new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece());
+            gameBoard.addPiece(endPosition, promotedPiece);
+            gameBoard.addPiece(startPosition, null);
         }
         if (this.getTeamTurn() == TeamColor.WHITE) {
             this.setTeamTurn(TeamColor.BLACK);
