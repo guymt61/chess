@@ -50,14 +50,23 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        //throw new RuntimeException("Implementation incomplete");
-
-        if (this.gameBoard.getPiece(startPosition) == null) {
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        if (movingPiece == null) {
             return null;
         }
         HashSet<ChessMove> legalMoves = new HashSet<>();
-
-
+        Collection<ChessMove> proposedMoves = movingPiece.pieceMoves(gameBoard, startPosition);
+        for (Iterator<ChessMove> moveIt = proposedMoves.iterator(); moveIt.hasNext();) {
+            ChessMove move = moveIt.next();
+            ChessPosition destination = move.getEndPosition();
+            ChessPiece aboutToGetCaptured = gameBoard.getPiece(destination);
+            this.forceMove(move);
+            if (!isInCheck(movingPiece.getTeamColor())) {
+                legalMoves.add(move);
+            }
+            this.forceMove(new ChessMove(destination, startPosition, null));
+            gameBoard.addPiece(destination, aboutToGetCaptured);
+        }
         return legalMoves;
     }
 
@@ -140,6 +149,18 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return this.gameBoard;
+    }
+
+    /**
+        A private callable method to make a move whether it's valid or not
+        Does not handle pawn promotions, use makeMove for that
+     */
+    private void forceMove(ChessMove move) {
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPosition endPosition = move.getEndPosition();
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        gameBoard.addPiece(endPosition, movingPiece);
+        gameBoard.addPiece(startPosition, null);
     }
 
     private ChessBoard gameBoard;
