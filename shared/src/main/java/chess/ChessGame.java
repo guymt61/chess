@@ -19,6 +19,12 @@ public class ChessGame {
         currentTurn = ChessGame.TeamColor.WHITE;
         lastMove = null;
         lastMovingPiece = null;
+        whiteKingMoved = false;
+        blackKingMoved = false;
+        rook11Moved = false;
+        rook18Moved = false;
+        rook81Moved = false;
+        rook88Moved = false;
     }
 
     /**
@@ -172,6 +178,28 @@ public class ChessGame {
         else {
             this.setTeamTurn(TeamColor.WHITE);
         }
+        if (movingPiece.getPieceType() == ChessPiece.PieceType.KING) {
+            if (!whiteKingMoved && movingPiece.getTeamColor() == TeamColor.WHITE) {
+                whiteKingMoved = true;
+            }
+            if (!blackKingMoved && movingPiece.getTeamColor() == TeamColor.BLACK) {
+                blackKingMoved = true;
+            }
+        }
+        if (movingPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            if (startPosition.getRow() == 1 && startPosition.getColumn() == 1) {
+                rook11Moved = true;
+            }
+            if (startPosition.getRow() == 1 && startPosition.getColumn() == 8) {
+                rook18Moved = true;
+            }
+            if (startPosition.getRow() == 8 && startPosition.getColumn() == 1) {
+                rook81Moved = true;
+            }
+            if (startPosition.getRow() == 8 && startPosition.getColumn() == 8) {
+                rook11Moved = true;
+            }
+        }
         lastMove = move;
         lastMovingPiece = movingPiece;
     }
@@ -294,6 +322,12 @@ public class ChessGame {
     private ChessGame.TeamColor currentTurn;
     private ChessMove lastMove;
     private ChessPiece lastMovingPiece;
+    private boolean whiteKingMoved;
+    private boolean rook11Moved;
+    private boolean rook18Moved;
+    private boolean blackKingMoved;
+    private boolean rook81Moved;
+    private boolean rook88Moved;
 
     //private boolean debug = true;
 }
