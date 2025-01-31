@@ -119,7 +119,12 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (!isInCheck(teamColor)) {
+            return false;
+        }
+        else {
+            return getWholeTeamMoves(teamColor).isEmpty();
+        }
     }
 
     /**
@@ -161,6 +166,27 @@ public class ChessGame {
         ChessPiece movingPiece = gameBoard.getPiece(startPosition);
         gameBoard.addPiece(endPosition, movingPiece);
         gameBoard.addPiece(startPosition, null);
+    }
+
+    /**
+     * Returns a collection of all legal moves for a team
+     */
+    private Collection<ChessMove> getWholeTeamMoves(ChessGame.TeamColor teamColor) {
+        HashSet<ChessMove> allLegalMoves = new HashSet<>();
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition targetPosition = new ChessPosition(i, j);
+                ChessPiece targetPiece = this.gameBoard.getPiece(targetPosition);
+                if (targetPiece == null) {
+                    continue;
+                }
+                if (targetPiece.getTeamColor() == teamColor) {
+                    Collection<ChessMove> targetPieceMoves = validMoves(targetPosition);
+                    allLegalMoves.addAll(targetPieceMoves);
+                }
+            }
+        }
+        return allLegalMoves;
     }
 
     private ChessBoard gameBoard;
