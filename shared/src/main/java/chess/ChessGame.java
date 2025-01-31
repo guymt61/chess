@@ -86,28 +86,44 @@ public class ChessGame {
         }
         //Check for En Passant
         if (lastMovingPiece != null) {
+            //if (debug) {System.out.println("Recognizes a move was made");}
             if (lastMovingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                //if (debug) {System.out.println("Recognizes a pawn made the last move");}
                 int movedFromRow = lastMove.getStartPosition().getRow();
                 int movedToRow = lastMove.getEndPosition().getRow();
                 int movedInCol = lastMove.getStartPosition().getColumn();
                 if (Math.abs(movedFromRow - movedToRow) == 2) {
                     //We now know that the last move was a pawn double move
+                    //if (debug) {System.out.println("Recognizes last move was double move");}
                     if (startPosition.getRow() == movedToRow && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
                         if (Math.abs(startPosition.getColumn() - movedInCol) == 1) {
                             //We now know there is a pawn in the right place to En Passant, not necessarily of the right team
                             if (lastMovingPiece.getTeamColor() == TeamColor.WHITE && movingPiece.getTeamColor() == TeamColor.BLACK) {
                                 //En passant on a white piece will be down and to the side
+                                //if (debug) {System.out.println("Recognizes Black can theoretically En Passant");}
                                 ChessPosition destination = new ChessPosition(movedToRow - 1, movedInCol);
                                 ChessMove enPassant = new ChessMove(startPosition, destination, null);
                                 forceMove(enPassant);
+                                gameBoard.addPiece(lastMove.getEndPosition(), null);
                                 if (!isInCheck(movingPiece.getTeamColor())) {
+                                    //if (debug) {System.out.println("Attempting to add En Passant to legal moves");}
                                     legalMoves.add(enPassant);
                                 }
                                 forceMove(new ChessMove(destination, startPosition, null));
+                                gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
                             }
                             if (lastMovingPiece.getTeamColor() == TeamColor.BLACK && movingPiece.getTeamColor() == TeamColor.WHITE) {
                                 //En passant on a black piece will be up and to the side
-                                legalMoves.add(new ChessMove(startPosition, new ChessPosition(movedToRow + 1, movedInCol), null));
+                                ChessPosition destination = new ChessPosition(movedToRow + 1, movedInCol);
+                                ChessMove enPassant = new ChessMove(startPosition, destination, null);
+                                forceMove(enPassant);
+                                gameBoard.addPiece(lastMove.getEndPosition(), null);
+                                if (!isInCheck(movingPiece.getTeamColor())) {
+                                    //if (debug) {System.out.println("Attempting to add En Passant to legal moves");}
+                                    legalMoves.add(enPassant);
+                                }
+                                forceMove(new ChessMove(destination, startPosition, null));
+                                gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
                             }
                         }
                     }
@@ -137,8 +153,13 @@ public class ChessGame {
             throw new InvalidMoveException("Invalid move: wrong turn");
         }
         if (move.getPromotionPiece() == null) {
+            //If the move is En Passant, get rid of the captured pawn
+            if (gameBoard.getPiece(endPosition) == null && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN && startPosition.getColumn() != endPosition.getColumn()) {
+                gameBoard.addPiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()), null);
+            }
             gameBoard.addPiece(endPosition, movingPiece);
             gameBoard.addPiece(startPosition, null);
+
         }
         else {
             ChessPiece promotedPiece = new ChessPiece(movingPiece.getTeamColor(), move.getPromotionPiece());
@@ -152,6 +173,7 @@ public class ChessGame {
             this.setTeamTurn(TeamColor.WHITE);
         }
         lastMove = move;
+        lastMovingPiece = movingPiece;
     }
 
     /**
@@ -272,4 +294,6 @@ public class ChessGame {
     private ChessGame.TeamColor currentTurn;
     private ChessMove lastMove;
     private ChessPiece lastMovingPiece;
+
+    //private boolean debug = true;
 }
