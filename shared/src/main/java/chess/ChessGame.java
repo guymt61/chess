@@ -169,6 +169,7 @@ public class ChessGame {
                     //Rook could have been captured without moving, so must verify it's still there
                     if (gameBoard.getPiece(new ChessPosition(1, 8)) != null) {
                         if (gameBoard.getPiece(new ChessPosition(1, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(1, 8)).getTeamColor() == TeamColor.WHITE && !rook18Moved) {
+                            //if (debug) {System.out.println("Verified a Rook is in the right place");}
                             //Make sure (1,6) and (1,7) are empty
                             ChessPosition step1 = new ChessPosition(1, 6);
                             ChessPosition step2 = new ChessPosition(1, 7);
@@ -219,7 +220,7 @@ public class ChessGame {
                     }
                     //Check for right-side castling
                     //Rook could have been captured without moving, so must verify it's still there
-                    if (gameBoard.getPiece(new ChessPosition(8, 1)) != null) {
+                    if (gameBoard.getPiece(new ChessPosition(8, 8)) != null) {
                         if (gameBoard.getPiece(new ChessPosition(8, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 8)).getTeamColor() == TeamColor.BLACK && !rook11Moved) {
                             //Make sure (8,6) and (8,7) are empty
                             ChessPosition step1 = new ChessPosition(8, 6);
@@ -274,6 +275,27 @@ public class ChessGame {
             }
             gameBoard.addPiece(endPosition, movingPiece);
             gameBoard.addPiece(startPosition, null);
+            //If the move is a Castle, move the rook into place
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 1 && startPosition.getColumn() == 5 && endPosition.getColumn() == 3 ) {
+                //White castle left
+                ChessMove rookJump = new ChessMove(new ChessPosition(1, 1), new ChessPosition(1, 4), null);
+                forceMove(rookJump);
+            }
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 1 && startPosition.getColumn() == 5 && endPosition.getColumn() == 7 ) {
+                //White castle right
+                ChessMove rookJump = new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null);
+                forceMove(rookJump);
+            }
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 8 && startPosition.getColumn() == 5 && endPosition.getColumn() == 3 ) {
+                //Black castle left
+                ChessMove rookJump = new ChessMove(new ChessPosition(8, 1), new ChessPosition(8, 4), null);
+                forceMove(rookJump);
+            }
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 8 && startPosition.getColumn() == 5 && endPosition.getColumn() == 7 ) {
+                //Black castle right
+                ChessMove rookJump = new ChessMove(new ChessPosition(8, 8), new ChessPosition(8, 6), null);
+                forceMove(rookJump);
+            }
 
         }
         else {
@@ -383,6 +405,14 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.gameBoard = board;
+        lastMove = null;
+        lastMovingPiece = null;
+        whiteKingMoved = false;
+        blackKingMoved = false;
+        rook11Moved = false;
+        rook18Moved = false;
+        rook81Moved = false;
+        rook88Moved = false;
     }
 
     /**
