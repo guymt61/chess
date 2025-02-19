@@ -13,7 +13,7 @@ public interface GameDAO {
     GameData getGame(int ID);
 
     //Update the chess game at a specified ID
-    void updateGame(int ID, GameData game);
+    void updateGame(GameData game);
 
     //Produce a list of all GameData
     Collection<GameData> listGames();

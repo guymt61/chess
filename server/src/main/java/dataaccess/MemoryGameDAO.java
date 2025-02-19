@@ -22,8 +22,8 @@ public class MemoryGameDAO implements GameDAO {
         return games.get(ID);
     }
 
-    public void updateGame(int ID, GameData game) {
-        games.put(ID, game);
+    public void updateGame(GameData game) {
+        games.put(game.getID(), game);
     }
 
     public Collection<GameData> listGames() {
