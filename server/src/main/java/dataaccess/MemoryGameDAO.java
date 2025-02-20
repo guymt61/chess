@@ -15,7 +15,7 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     public void createGame(GameData game) {
-        games.put(game.getID(), game);
+        games.put(game.gameID(), game);
     }
 
     public GameData getGame(int ID) {
@@ -23,12 +23,12 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     public void updateGame(GameData game) {
-        games.put(game.getID(), game);
+        games.put(game.gameID(), game);
     }
 
     public Collection<GameData> listGames() {
         return games.values();
     }
 
-    private HashMap<Integer, GameData> games;
+    private final HashMap<Integer, GameData> games;
 }

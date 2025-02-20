@@ -13,7 +13,7 @@ public class MemoryAuthDAO implements AuthDAO {
     }
 
     public void createAuth(AuthData auth) {
-        Auths.put(auth.getAuthToken(), auth);
+        Auths.put(auth.authToken(), auth);
     }
 
     public AuthData getAuth(String authToken) {
@@ -21,8 +21,8 @@ public class MemoryAuthDAO implements AuthDAO {
     }
 
     public void deleteAuth(AuthData auth) {
-        Auths.put(auth.getAuthToken(), null);
+        Auths.put(auth.authToken(), null);
     }
 
-    private HashMap<String, AuthData> Auths;
+    private final HashMap<String, AuthData> Auths;
 }
