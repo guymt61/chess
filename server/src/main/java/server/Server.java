@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import exception.ResponseException;
 import requestsresults.*;
 import spark.*;
 import service.*;
@@ -9,10 +10,15 @@ import dataaccess.*;
 
 public class Server {
     private final UserService userService;
+    private final UserDAO userDAO;
+    private final AuthDAO authDAO;
+    private final GameDAO gameDAO;
 
     public Server() {
-        UserDAO userDAO = new MemoryUserDAO();
-        userService = new UserService(userDAO);
+        userDAO = new MemoryUserDAO();
+        authDAO = new MemoryAuthDAO();
+        gameDAO = new MemoryGameDAO();
+        userService = new UserService(userDAO, authDAO);
     }
 
     public int run(int desiredPort) {
@@ -22,6 +28,8 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", this::register);
+        Spark.delete("/db", this::clear);
+        Spark.exception(ResponseException.class, this::exceptionHandler);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -30,10 +38,22 @@ public class Server {
         return Spark.port();
     }
 
-    private Object register(Request req, Response res) {
+    private Object clear(Request req, Response res) {
+        userDAO.clear();
+        authDAO.clear();
+        gameDAO.clear();
+        return "";
+    }
+
+    private Object register(Request req, Response res) throws ResponseException, DataAccessException {
         RegisterRequest regReq = new Gson().fromJson(req.body(), RegisterRequest.class);
         RegisterResult regRes = userService.register(regReq);
         return new Gson().toJson(regRes);
+    }
+
+    private void exceptionHandler(ResponseException ex, Request req, Response res) {
+        res.status(ex.StatusCode());
+        res.body(ex.toJson());
     }
 
     public void stop() {

@@ -7,8 +7,8 @@ public interface UserDAO {
     void clear();
 
     //Find userData based on username
-    UserData getUser(String username);
+    UserData getUser(String username) throws DataAccessException;
 
     //Add a new user
-    void createUser(UserData data);
+    void createUser(UserData data) throws DataAccessException;
 }
