@@ -18,6 +18,9 @@ public class UserService {
     }
 
     public RegisterResult register(RegisterRequest registerRequest) throws ResponseException, DataAccessException {
+        if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
+            throw new ResponseException(400, "Error: bad request");
+        }
         if (userDAO.getUser(registerRequest.username()) == null) {
             UserData newUser = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
             userDAO.createUser(newUser);
