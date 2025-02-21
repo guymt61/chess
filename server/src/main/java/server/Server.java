@@ -28,6 +28,7 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", this::register);
+        Spark.post("/session", this::login);
         Spark.delete("/db", this::clear);
         Spark.exception(ResponseException.class, this::exceptionHandler);
 
@@ -43,6 +44,12 @@ public class Server {
         authDAO.clear();
         gameDAO.clear();
         return "";
+    }
+
+    private Object login(Request req, Response res) throws ResponseException, DataAccessException {
+        LoginRequest logReq = new Gson().fromJson(req.body(), LoginRequest.class);
+        LoginResult logRes = userService.login(logReq);
+        return new Gson().toJson(logRes);
     }
 
     private Object register(Request req, Response res) throws ResponseException, DataAccessException {

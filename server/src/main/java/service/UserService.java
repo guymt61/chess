@@ -34,4 +34,19 @@ public class UserService {
         }
     }
 
+    public LoginResult login(LoginRequest loginRequest) throws ResponseException, DataAccessException {
+        String username = loginRequest.username();
+        String password = loginRequest.password();
+        UserData user = userDAO.getUser(username);
+        if (user != null) {
+            if (user.password().equals(password)) {
+                String newAuthToken = UUID.randomUUID().toString();
+                AuthData newAuth = new AuthData(newAuthToken, username);
+                authDAO.createAuth(newAuth);
+                return new LoginResult(username, newAuthToken);
+            }
+        }
+        throw new ResponseException(401, "Error: unauthorized");
+    }
+
 }
