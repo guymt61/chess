@@ -29,6 +29,7 @@ public class Server {
         // Register your endpoints and handle exceptions here.
         Spark.post("/user", this::register);
         Spark.post("/session", this::login);
+        Spark.delete("/session", this::logout);
         Spark.delete("/db", this::clear);
         Spark.exception(ResponseException.class, this::exceptionHandler);
 
@@ -56,6 +57,12 @@ public class Server {
         RegisterRequest regReq = new Gson().fromJson(req.body(), RegisterRequest.class);
         RegisterResult regRes = userService.register(regReq);
         return new Gson().toJson(regRes);
+    }
+
+    private Object logout(Request req, Response res) throws ResponseException, DataAccessException{
+        LogoutRequest logoutRequest = new LogoutRequest(req.headers("Authorization"));
+        LogoutResult logoutResult = userService.logout(logoutRequest);
+        return new Gson().toJson(logoutResult);
     }
 
     private void exceptionHandler(ResponseException ex, Request req, Response res) {

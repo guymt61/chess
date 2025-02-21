@@ -1,3 +1,3 @@
 package requestsresults;
 
-public record LogoutRequest(String authToken) {}
+public record LogoutRequest(String authorization) {}

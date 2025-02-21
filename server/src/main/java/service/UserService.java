@@ -5,6 +5,8 @@ import exception.ResponseException;
 import model.AuthData;
 import model.UserData;
 import requestsresults.*;
+
+import java.io.Console;
 import java.util.UUID;
 
 public class UserService {
@@ -47,6 +49,16 @@ public class UserService {
             }
         }
         throw new ResponseException(401, "Error: unauthorized");
+    }
+
+    public LogoutResult logout(LogoutRequest logoutRequest) throws ResponseException, DataAccessException {
+        String authToken = logoutRequest.authorization();
+        AuthData auth = authDAO.getAuth(authToken);
+        if (auth == null) {
+            throw new ResponseException(401, "Error: unauthorized");
+        }
+        authDAO.deleteAuth(auth);
+        return new LogoutResult();
     }
 
 }
