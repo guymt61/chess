@@ -27,6 +27,10 @@ class UserServiceTest {
         return new RegisterRequest(data.username(), data.password(), data.email());
     }
 
+    private LoginRequest LoginReqFromUserData(UserData data) {
+        return new LoginRequest(data.username(), data.password());
+    }
+
     private void CheckForAuth(String authToken, String username){
         //Asserts that the authDAO has an authorization tied to authToken and that it is associated with username
         AuthData authData = authDAO.getAuth(authToken);
@@ -120,7 +124,50 @@ class UserServiceTest {
     }
 
     @Test
-    void login() {
+    @DisplayName("Successful Login")
+    void loginSuccess() throws ResponseException{
+        userDAO.createUser(testUser1);
+        LoginResult result = service.login(LoginReqFromUserData(testUser1));
+        CheckForAuth(result.authToken(), "testUser1");
+    }
+
+    @Test
+    @DisplayName("Triple Login")
+    void loginTriple() throws ResponseException{
+        userDAO.createUser(testUser1);
+        userDAO.createUser(testUser2);
+        userDAO.createUser(testUser3);
+        LoginResult result1 = service.login(LoginReqFromUserData(testUser1));
+        LoginResult result2 = service.login(LoginReqFromUserData(testUser2));
+        LoginResult result3 = service.login(LoginReqFromUserData(testUser3));
+        CheckForAuth(result1.authToken(), "testUser1");
+        CheckForAuth(result2.authToken(), "testUser2");
+        CheckForAuth(result3.authToken(), "testUser3");
+    }
+
+    @Test
+    @DisplayName("Incorrect Password Login")
+    void incorrectPassword() {
+        userDAO.createUser(testUser1);
+        try {
+            service.login(new LoginRequest("testUser1", "This isnt correct"));
+            fail("Login was supposed to fail");
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Nonexistent User Login")
+    void nonexistentUser() {
+        //Include some users to make the UserData non-trivial
+        userDAO.createUser(testUser1);
+        userDAO.createUser(testUser2);
+        try {
+            service.login(new LoginRequest("I dont exist", "superSecure"));
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+        }
     }
 
     @Test
