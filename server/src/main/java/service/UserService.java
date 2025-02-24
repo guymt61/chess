@@ -19,7 +19,7 @@ public class UserService {
         authDAO = authDAOToUse;
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws ResponseException, DataAccessException {
+    public RegisterResult register(RegisterRequest registerRequest) throws ResponseException {
         if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
             throw new ResponseException(400, "Error: bad request");
         }
@@ -36,7 +36,7 @@ public class UserService {
         }
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws ResponseException, DataAccessException {
+    public LoginResult login(LoginRequest loginRequest) throws ResponseException {
         String username = loginRequest.username();
         String password = loginRequest.password();
         UserData user = userDAO.getUser(username);

@@ -10,7 +10,7 @@ public interface AuthDAO {
     void createAuth(AuthData auth);
 
     //Retrieve an authorization by its authToken
-    AuthData getAuth(String authToken) throws DataAccessException;
+    AuthData getAuth(String authToken);
 
     //Delete an authorization, invalidating it
     void deleteAuth(AuthData auth) throws DataAccessException;
