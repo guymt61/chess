@@ -13,5 +13,5 @@ public interface AuthDAO {
     AuthData getAuth(String authToken);
 
     //Delete an authorization, invalidating it
-    void deleteAuth(AuthData auth) throws DataAccessException;
+    void deleteAuth(AuthData auth);
 }

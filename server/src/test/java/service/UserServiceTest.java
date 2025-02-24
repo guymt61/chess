@@ -164,13 +164,48 @@ class UserServiceTest {
         userDAO.createUser(testUser1);
         userDAO.createUser(testUser2);
         try {
-            service.login(new LoginRequest("I dont exist", "superSecure"));
+            service.login(new LoginRequest("I don't exist", "superSecure"));
         } catch (ResponseException e) {
             assertEquals(401, e.StatusCode());
         }
     }
 
     @Test
-    void logout() {
+    @DisplayName("Logout Success")
+    void logout() throws ResponseException{
+        //Assumes that register functions properly
+        RegisterResult registration = service.register(RegReqFromUserData(testUser1));
+        service.logout(new LogoutRequest(registration.authToken()));
+        assertNull(authDAO.getAuth(registration.authToken()));
+    }
+
+    @Test
+    @DisplayName("Logout with no AuthData stored")
+    void emptyAuthLogout() {
+        try {
+            service.logout(new LogoutRequest("authToken"));
+            fail("Logout should have thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+            assertNull(authDAO.getAuth("authToken"));
+        }
+    }
+
+    @Test
+    @DisplayName("Logout with invalid token")
+    void badAuthLogout() throws ResponseException{
+        RegisterResult result1 = service.register(RegReqFromUserData(testUser1));
+        RegisterResult result2 = service.register(RegReqFromUserData(testUser2));
+        String auth1 = result1.authToken();
+        String auth2 = result2.authToken();
+        try {
+            service.logout(new LogoutRequest("Fake Token"));
+            fail("Logout should have thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+            assertNotNull(authDAO.getAuth(auth1));
+            assertNotNull(authDAO.getAuth(auth2));
+            assertNull(authDAO.getAuth("Fake Token"));
+        }
     }
 }

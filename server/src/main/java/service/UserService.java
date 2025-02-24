@@ -51,7 +51,7 @@ public class UserService {
         throw new ResponseException(401, "Error: unauthorized");
     }
 
-    public LogoutResult logout(LogoutRequest logoutRequest) throws ResponseException, DataAccessException {
+    public LogoutResult logout(LogoutRequest logoutRequest) throws ResponseException {
         String authToken = logoutRequest.authorization();
         AuthData auth = authDAO.getAuth(authToken);
         if (auth == null) {
