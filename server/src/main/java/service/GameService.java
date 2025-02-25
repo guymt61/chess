@@ -7,9 +7,18 @@ import model.AuthData;
 import model.GameData;
 import requestsresults.*;
 
+import java.util.HashSet;
+
 public class GameService {
     private GameDAO gameDAO;
     private AuthDAO authDAO;
+
+    private void verifyAuth(String authToken) throws ResponseException {
+        AuthData auth = authDAO.getAuth(authToken);
+        if (auth == null) {
+            throw new ResponseException(401, "Error: Unauthorized");
+        }
+    }
 
     public GameService(GameDAO gameDAOToUse, AuthDAO authDAOToUse) {
         gameDAO = gameDAOToUse;
@@ -17,7 +26,9 @@ public class GameService {
     }
 
     public ListResult list(ListRequest listReq) throws ResponseException{
-        return null;
+        verifyAuth(listReq.authToken());
+        HashSet<GameData> allGames = gameDAO.listGames();
+        return new ListResult(allGames);
     }
 
     public CreateResult create(CreateRequest createReq) throws ResponseException {

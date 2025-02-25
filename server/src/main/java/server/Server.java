@@ -10,6 +10,7 @@ import dataaccess.*;
 
 public class Server {
     private final UserService userService;
+    private final GameService gameService;
     private final UserDAO userDAO;
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
@@ -19,6 +20,7 @@ public class Server {
         authDAO = new MemoryAuthDAO();
         gameDAO = new MemoryGameDAO();
         userService = new UserService(userDAO, authDAO);
+        gameService = new GameService(gameDAO, authDAO);
     }
 
     public int run(int desiredPort) {
@@ -31,6 +33,7 @@ public class Server {
         Spark.post("/session", this::login);
         Spark.delete("/session", this::logout);
         Spark.delete("/db", this::clear);
+        Spark.get("/game", this::list);
         Spark.exception(ResponseException.class, this::exceptionHandler);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
@@ -63,6 +66,12 @@ public class Server {
         LogoutRequest logoutRequest = new LogoutRequest(req.headers("Authorization"));
         LogoutResult logoutResult = userService.logout(logoutRequest);
         return new Gson().toJson(logoutResult);
+    }
+
+    private Object list(Request req, Response res) throws ResponseException {
+        ListRequest listRequest = new ListRequest(req.headers("Authorization"));
+        ListResult listResult = gameService.list(listRequest);
+        return new Gson().toJson(listResult);
     }
 
     private void exceptionHandler(ResponseException ex, Request req, Response res) {
