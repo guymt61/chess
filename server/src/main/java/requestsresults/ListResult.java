@@ -1,5 +1,5 @@
 package requestsresults;
 import model.GameData;
-import java.util.Collection;
+import java.util.HashSet;
 
-public record ListResult(Collection<GameData> games) {}
+public record ListResult(HashSet<GameData> games) {}

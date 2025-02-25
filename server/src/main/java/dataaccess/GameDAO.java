@@ -1,6 +1,7 @@
 package dataaccess;
 import model.GameData;
 import java.util.Collection;
+import java.util.HashSet;
 
 public interface GameDAO {
     //Clear all games
@@ -16,6 +17,6 @@ public interface GameDAO {
     void updateGame(GameData game);
 
     //Produce a list of all GameData
-    Collection<GameData> listGames();
+    HashSet<GameData> listGames();
 
 }

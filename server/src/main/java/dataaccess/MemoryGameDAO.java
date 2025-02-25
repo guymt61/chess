@@ -3,6 +3,8 @@ import model.GameData;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class MemoryGameDAO implements GameDAO {
 
@@ -26,8 +28,8 @@ public class MemoryGameDAO implements GameDAO {
         games.put(game.gameID(), game);
     }
 
-    public Collection<GameData> listGames() {
-        return games.values();
+    public HashSet<GameData> listGames() {
+        return new HashSet<>(games.values());
     }
 
     private final HashMap<Integer, GameData> games;
