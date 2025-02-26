@@ -171,6 +171,17 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Same User Double Login")
+    void sameLoginTwice() throws ResponseException{
+        userDAO.createUser(testUser1);
+        LoginResult result1 = service.login(LoginReqFromUserData(testUser1));
+        assertNotNull(authDAO.getAuth(result1.authToken()));
+        LoginResult result2 = service.login(LoginReqFromUserData(testUser1));
+        assertNotEquals(result1.authToken(), result2.authToken(), "Both logins returned the same auth token");
+        assertNotNull(authDAO.getAuth(result2.authToken()));
+    }
+
+    @Test
     @DisplayName("Logout Success")
     void logout() throws ResponseException{
         //Assumes that register functions properly

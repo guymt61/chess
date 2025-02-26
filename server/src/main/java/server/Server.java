@@ -34,6 +34,7 @@ public class Server {
         Spark.delete("/session", this::logout);
         Spark.delete("/db", this::clear);
         Spark.get("/game", this::list);
+        Spark.post("/game", this::create);
         Spark.exception(ResponseException.class, this::exceptionHandler);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
@@ -72,6 +73,13 @@ public class Server {
         ListRequest listRequest = new ListRequest(req.headers("Authorization"));
         ListResult listResult = gameService.list(listRequest);
         return new Gson().toJson(listResult);
+    }
+
+    private Object create(Request req, Response res) throws ResponseException {
+        CreateRequest nameOnly = new Gson().fromJson(req.body(), CreateRequest.class);
+        CreateRequest createRequest = new CreateRequest(req.headers("Authorization"), nameOnly.gameName());
+        CreateResult createResult = gameService.create(createRequest);
+        return new Gson().toJson(createResult);
     }
 
     private void exceptionHandler(ResponseException ex, Request req, Response res) {

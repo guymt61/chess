@@ -66,7 +66,7 @@ class GameServiceTest {
     @Test
     @DisplayName("Basic Create Game")
     void basicCreate() throws ResponseException{
-        CreateResult result = service.create(new CreateRequest("Token", "game1"));
+        CreateResult result = service.create(new CreateRequest("token", "game1"));
         assertNotNull(result);
         int createdID = result.gameID();
         GameData createdGame = gameDAO.getGame(createdID);
@@ -92,7 +92,7 @@ class GameServiceTest {
     @DisplayName("Incomplete Create Request")
     void badCreate() {
         try {
-            service.create(new CreateRequest("Token", null));
+            service.create(new CreateRequest("token", null));
         } catch (ResponseException e) {
             assertEquals(400, e.StatusCode());
         }
@@ -101,8 +101,8 @@ class GameServiceTest {
     @Test
     @DisplayName("Duplicated Name Create")
     void sameNameCreate() throws ResponseException{
-        CreateResult result1 = service.create(new CreateRequest("Token", "TestGame"));
-        CreateResult result2 = service.create(new CreateRequest("Token", "TestGame"));
+        CreateResult result1 = service.create(new CreateRequest("token", "TestGame"));
+        CreateResult result2 = service.create(new CreateRequest("token", "TestGame"));
         int ID1 = result1.gameID();
         GameData game1 = gameDAO.getGame(ID1);
         int ID2 = result2.gameID();
