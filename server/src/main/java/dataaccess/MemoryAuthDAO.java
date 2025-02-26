@@ -5,24 +5,24 @@ import java.util.HashMap;
 public class MemoryAuthDAO implements AuthDAO {
 
     public MemoryAuthDAO() {
-        Auths = new HashMap<>();
+        auths = new HashMap<>();
     }
 
     public void clear() {
-        Auths.clear();
+        auths.clear();
     }
 
     public void createAuth(AuthData auth) {
-        Auths.put(auth.authToken(), auth);
+        auths.put(auth.authToken(), auth);
     }
 
     public AuthData getAuth(String authToken) {
-        return Auths.get(authToken);
+        return auths.get(authToken);
     }
 
     public void deleteAuth(AuthData auth) {
-        Auths.put(auth.authToken(), null);
+        auths.put(auth.authToken(), null);
     }
 
-    private final HashMap<String, AuthData> Auths;
+    private final HashMap<String, AuthData> auths;
 }

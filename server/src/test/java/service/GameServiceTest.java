@@ -58,7 +58,7 @@ class GameServiceTest {
             service.list(new ListRequest("Fake Token"));
             fail("List should have thrown an error");
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
         }
 
     }
@@ -84,7 +84,7 @@ class GameServiceTest {
             service.create(new CreateRequest("Fake Token", "game1"));
             fail("Create should have thrown an error");
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
         }
     }
 
@@ -94,7 +94,7 @@ class GameServiceTest {
         try {
             service.create(new CreateRequest("token", null));
         } catch (ResponseException e) {
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
     }
 
@@ -103,13 +103,13 @@ class GameServiceTest {
     void sameNameCreate() throws ResponseException{
         CreateResult result1 = service.create(new CreateRequest("token", "TestGame"));
         CreateResult result2 = service.create(new CreateRequest("token", "TestGame"));
-        int ID1 = result1.gameID();
-        GameData game1 = gameDAO.getGame(ID1);
-        int ID2 = result2.gameID();
-        GameData game2 = gameDAO.getGame(ID2);
+        int id1 = result1.gameID();
+        GameData game1 = gameDAO.getGame(id1);
+        int id2 = result2.gameID();
+        GameData game2 = gameDAO.getGame(id2);
         assertNotNull(game1);
         assertNotNull(game2);
-        assertNotEquals(ID1, ID2, "IDs should not be the same");
+        assertNotEquals(id1, id2, "IDs should not be the same");
         assertNotEquals(game1, game2, "Same game created twice");
     }
 
@@ -153,7 +153,7 @@ class GameServiceTest {
             service.join(new JoinRequest("token", null, 1));
             fail("Join should've thrown an error");
         } catch (ResponseException e) {
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
     }
 
@@ -165,7 +165,7 @@ class GameServiceTest {
             service.join(new JoinRequest("token", "Magenta", 1));
             fail("Join should've thrown an error");
         } catch (ResponseException e) {
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
     }
 
@@ -176,7 +176,7 @@ class GameServiceTest {
         try {
             service.join(new JoinRequest("token", "WHITE", 37));
         } catch (ResponseException e) {
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
     }
 
@@ -187,7 +187,7 @@ class GameServiceTest {
         try {
             service.join(new JoinRequest("Fake Token", "WHITE", 1));
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
         }
     }
 
@@ -200,7 +200,7 @@ class GameServiceTest {
             service.join(new JoinRequest("token2", "WHITE", 1));
             fail("Second join should've thrown an error");
         } catch (ResponseException e) {
-            assertEquals(403, e.StatusCode());
+            assertEquals(403, e.statusCode());
         }
     }
 }

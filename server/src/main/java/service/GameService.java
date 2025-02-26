@@ -14,7 +14,7 @@ import java.util.Random;
 public class GameService {
     private final GameDAO gameDAO;
     private final AuthDAO authDAO;
-    private final Random IDs;
+    private final Random random;
     private final HashSet<Integer> usedIDs;
 
     private void verifyAuth(String authToken) throws ResponseException {
@@ -27,7 +27,7 @@ public class GameService {
     public GameService(GameDAO gameDAOToUse, AuthDAO authDAOToUse) {
         gameDAO = gameDAOToUse;
         authDAO = authDAOToUse;
-        IDs = new Random();
+        random = new Random();
         usedIDs = new HashSet<>();
     }
 
@@ -43,13 +43,13 @@ public class GameService {
             throw new ResponseException(400, "Error: Bad Request");
         }
         ChessGame newGame = new ChessGame();
-        int ID = Math.abs(IDs.nextInt());
-        while (usedIDs.contains(ID) || ID == 0) {
-            ID = IDs.nextInt();
+        int id = Math.abs(random.nextInt());
+        while (usedIDs.contains(id) || id == 0) {
+            id = random.nextInt();
         }
-        usedIDs.add(ID);
-        gameDAO.createGame(new GameData(ID, null, null, createReq.gameName(), newGame));
-        return new CreateResult(ID);
+        usedIDs.add(id);
+        gameDAO.createGame(new GameData(id, null, null, createReq.gameName(), newGame));
+        return new CreateResult(id);
     }
 
     public JoinResult join(JoinRequest joinReq) throws ResponseException, DataAccessException{

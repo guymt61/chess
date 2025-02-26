@@ -23,15 +23,15 @@ class UserServiceTest {
     private final UserData testUser4 = new UserData("testUser4", "superSecure", "test@test.test");
     private final UserData testUser5 = new UserData("testUser5", "superSecure", "test@test.test");
 
-    private RegisterRequest RegReqFromUserData(UserData data) {
+    private RegisterRequest regReqFromUserData(UserData data) {
         return new RegisterRequest(data.username(), data.password(), data.email());
     }
 
-    private LoginRequest LoginReqFromUserData(UserData data) {
+    private LoginRequest loginReqFromUserData(UserData data) {
         return new LoginRequest(data.username(), data.password());
     }
 
-    private void CheckForAuth(String authToken, String username){
+    private void checkForAuth(String authToken, String username){
         //Asserts that the authDAO has an authorization tied to authToken and that it is associated with username
         AuthData authData = authDAO.getAuth(authToken);
         assertNotNull(authData);
@@ -48,9 +48,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Successful Registration - Empty DAO")
     void successRegister() throws ResponseException {
-        RegisterResult result = service.register(RegReqFromUserData(testUser1));
+        RegisterResult result = service.register(regReqFromUserData(testUser1));
         assertNotNull(userDAO.getUser("testUser1"));
-        CheckForAuth(result.authToken(), "testUser1");
+        checkForAuth(result.authToken(), "testUser1");
     }
 
     @Test
@@ -60,23 +60,23 @@ class UserServiceTest {
         userDAO.createUser(testUser3);
         userDAO.createUser(testUser4);
         userDAO.createUser(testUser5);
-        RegisterResult result = service.register(RegReqFromUserData(testUser1));
+        RegisterResult result = service.register(regReqFromUserData(testUser1));
         assertNotNull(userDAO.getUser("testUser1"));
-        CheckForAuth(result.authToken(),"testUser1");
+        checkForAuth(result.authToken(),"testUser1");
     }
 
     @Test
     @DisplayName("Triple Successful Registration")
     void tripleRegister() throws ResponseException {
-        RegisterResult result1 = service.register(RegReqFromUserData(testUser1));
-        RegisterResult result2 = service.register(RegReqFromUserData(testUser2));
-        RegisterResult result3 = service.register(RegReqFromUserData(testUser3));
+        RegisterResult result1 = service.register(regReqFromUserData(testUser1));
+        RegisterResult result2 = service.register(regReqFromUserData(testUser2));
+        RegisterResult result3 = service.register(regReqFromUserData(testUser3));
         assertNotNull(userDAO.getUser("testUser1"));
         assertNotNull(userDAO.getUser("testUser2"));
         assertNotNull(userDAO.getUser("testUser3"));
-        CheckForAuth(result1.authToken(), "testUser1");
-        CheckForAuth(result2.authToken(), "testUser2");
-        CheckForAuth(result3.authToken(), "testUser3");
+        checkForAuth(result1.authToken(), "testUser1");
+        checkForAuth(result2.authToken(), "testUser2");
+        checkForAuth(result3.authToken(), "testUser3");
     }
 
     @Test
@@ -84,11 +84,11 @@ class UserServiceTest {
     void registerTaken(){
         userDAO.createUser(testUser1);
         try {
-            service.register(RegReqFromUserData(testUser1));
+            service.register(regReqFromUserData(testUser1));
             fail("Register did not throw an error");
         } catch (ResponseException e) {
             //ResponseException thrown as intended
-            assertEquals(403, e.StatusCode());
+            assertEquals(403, e.statusCode());
         }
 
     }
@@ -102,7 +102,7 @@ class UserServiceTest {
             fail("Register did not throw an error");
         } catch (ResponseException e) {
             //Exception thrown as intended
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
         //Missing password
         try {
@@ -110,7 +110,7 @@ class UserServiceTest {
             fail("Register did not throw an error");
         } catch (ResponseException e) {
             //Exception thrown as intended
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
         //Missing email
         try {
@@ -118,7 +118,7 @@ class UserServiceTest {
             fail("Register did not throw an error");
         } catch (ResponseException e) {
             //Exception thrown as intended
-            assertEquals(400, e.StatusCode());
+            assertEquals(400, e.statusCode());
         }
 
     }
@@ -127,8 +127,8 @@ class UserServiceTest {
     @DisplayName("Successful Login")
     void loginSuccess() throws ResponseException{
         userDAO.createUser(testUser1);
-        LoginResult result = service.login(LoginReqFromUserData(testUser1));
-        CheckForAuth(result.authToken(), "testUser1");
+        LoginResult result = service.login(loginReqFromUserData(testUser1));
+        checkForAuth(result.authToken(), "testUser1");
     }
 
     @Test
@@ -137,12 +137,12 @@ class UserServiceTest {
         userDAO.createUser(testUser1);
         userDAO.createUser(testUser2);
         userDAO.createUser(testUser3);
-        LoginResult result1 = service.login(LoginReqFromUserData(testUser1));
-        LoginResult result2 = service.login(LoginReqFromUserData(testUser2));
-        LoginResult result3 = service.login(LoginReqFromUserData(testUser3));
-        CheckForAuth(result1.authToken(), "testUser1");
-        CheckForAuth(result2.authToken(), "testUser2");
-        CheckForAuth(result3.authToken(), "testUser3");
+        LoginResult result1 = service.login(loginReqFromUserData(testUser1));
+        LoginResult result2 = service.login(loginReqFromUserData(testUser2));
+        LoginResult result3 = service.login(loginReqFromUserData(testUser3));
+        checkForAuth(result1.authToken(), "testUser1");
+        checkForAuth(result2.authToken(), "testUser2");
+        checkForAuth(result3.authToken(), "testUser3");
     }
 
     @Test
@@ -153,7 +153,7 @@ class UserServiceTest {
             service.login(new LoginRequest("testUser1", "This isnt correct"));
             fail("Login was supposed to fail");
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
         }
     }
 
@@ -166,7 +166,7 @@ class UserServiceTest {
         try {
             service.login(new LoginRequest("I don't exist", "superSecure"));
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
         }
     }
 
@@ -174,9 +174,9 @@ class UserServiceTest {
     @DisplayName("Same User Double Login")
     void sameLoginTwice() throws ResponseException{
         userDAO.createUser(testUser1);
-        LoginResult result1 = service.login(LoginReqFromUserData(testUser1));
+        LoginResult result1 = service.login(loginReqFromUserData(testUser1));
         assertNotNull(authDAO.getAuth(result1.authToken()));
-        LoginResult result2 = service.login(LoginReqFromUserData(testUser1));
+        LoginResult result2 = service.login(loginReqFromUserData(testUser1));
         assertNotEquals(result1.authToken(), result2.authToken(), "Both logins returned the same auth token");
         assertNotNull(authDAO.getAuth(result2.authToken()));
     }
@@ -185,7 +185,7 @@ class UserServiceTest {
     @DisplayName("Logout Success")
     void logout() throws ResponseException{
         //Assumes that register functions properly
-        RegisterResult registration = service.register(RegReqFromUserData(testUser1));
+        RegisterResult registration = service.register(regReqFromUserData(testUser1));
         service.logout(new LogoutRequest(registration.authToken()));
         assertNull(authDAO.getAuth(registration.authToken()));
     }
@@ -197,7 +197,7 @@ class UserServiceTest {
             service.logout(new LogoutRequest("authToken"));
             fail("Logout should have thrown an error");
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
             assertNull(authDAO.getAuth("authToken"));
         }
     }
@@ -205,15 +205,15 @@ class UserServiceTest {
     @Test
     @DisplayName("Logout with invalid token")
     void badAuthLogout() throws ResponseException{
-        RegisterResult result1 = service.register(RegReqFromUserData(testUser1));
-        RegisterResult result2 = service.register(RegReqFromUserData(testUser2));
+        RegisterResult result1 = service.register(regReqFromUserData(testUser1));
+        RegisterResult result2 = service.register(regReqFromUserData(testUser2));
         String auth1 = result1.authToken();
         String auth2 = result2.authToken();
         try {
             service.logout(new LogoutRequest("Fake Token"));
             fail("Logout should have thrown an error");
         } catch (ResponseException e) {
-            assertEquals(401, e.StatusCode());
+            assertEquals(401, e.statusCode());
             assertNotNull(authDAO.getAuth(auth1));
             assertNotNull(authDAO.getAuth(auth2));
             assertNull(authDAO.getAuth("Fake Token"));

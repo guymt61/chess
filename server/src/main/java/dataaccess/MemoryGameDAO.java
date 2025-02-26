@@ -1,10 +1,8 @@
 package dataaccess;
 import model.GameData;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
 public class MemoryGameDAO implements GameDAO {
 
@@ -20,8 +18,8 @@ public class MemoryGameDAO implements GameDAO {
         games.put(game.gameID(), game);
     }
 
-    public GameData getGame(int ID) {
-        return games.get(ID);
+    public GameData getGame(int id) {
+        return games.get(id);
     }
 
     public void updateGame(GameData game) throws DataAccessException{

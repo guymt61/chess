@@ -11,7 +11,7 @@ public interface GameDAO {
     void createGame(GameData game);
 
     //Find a game based on ID
-    GameData getGame(int ID);
+    GameData getGame(int id);
 
     //Update the chess game at a specified ID
     void updateGame(GameData game) throws DataAccessException;

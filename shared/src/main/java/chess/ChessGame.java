@@ -145,24 +145,7 @@ public class ChessGame {
                     if (gameBoard.getPiece(new ChessPosition(1, 1)) != null) {
                         if (gameBoard.getPiece(new ChessPosition(1, 1)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(1, 1)).getTeamColor() == TeamColor.WHITE && !rook11Moved) {
                             //Make sure (1,4) and (1,3) are empty
-                            ChessPosition step1 = new ChessPosition(1, 4);
-                            ChessPosition step2 = new ChessPosition(1, 3);
-                            if (gameBoard.getPiece(step1) == null && gameBoard.getPiece(step2) == null) {
-                                boolean safe = true;
-                                forceMove(new ChessMove(startPosition, step1, null));
-                                if (isInCheck(TeamColor.WHITE)) {
-                                    safe = false;
-                                }
-                                forceMove(new ChessMove(step1, step2, null));
-                                if (isInCheck(TeamColor.WHITE)) {
-                                    safe = false;
-                                }
-                                if (safe) {
-                                    legalMoves.add(new ChessMove(startPosition, step2, null));
-                                }
-                                forceMove(new ChessMove(step2, startPosition, null));
-                            }
-
+                            castleHelper(startPosition, new ChessPosition(1, 4), new ChessPosition(1, 3), legalMoves);
                         }
                     }
                     //Check for right-side castling
@@ -171,24 +154,7 @@ public class ChessGame {
                         if (gameBoard.getPiece(new ChessPosition(1, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(1, 8)).getTeamColor() == TeamColor.WHITE && !rook18Moved) {
                             //if (debug) {System.out.println("Verified a Rook is in the right place");}
                             //Make sure (1,6) and (1,7) are empty
-                            ChessPosition step1 = new ChessPosition(1, 6);
-                            ChessPosition step2 = new ChessPosition(1, 7);
-                            if (gameBoard.getPiece(step1) == null && gameBoard.getPiece(step2) == null) {
-                                boolean safe = true;
-                                forceMove(new ChessMove(startPosition, step1, null));
-                                if (isInCheck(TeamColor.WHITE)) {
-                                    safe = false;
-                                }
-                                forceMove(new ChessMove(step1, step2, null));
-                                if (isInCheck(TeamColor.WHITE)) {
-                                    safe = false;
-                                }
-                                if (safe) {
-                                    legalMoves.add(new ChessMove(startPosition, step2, null));
-                                }
-                                forceMove(new ChessMove(step2, startPosition, null));
-                            }
-
+                            castleHelper(startPosition, new ChessPosition(1, 6), new ChessPosition(1, 7), legalMoves);
                         }
                     }
                 }
@@ -196,51 +162,17 @@ public class ChessGame {
                     //Check for left-side castling
                     //Rook could have been captured without moving, so must verify it's still there
                     if (gameBoard.getPiece(new ChessPosition(8, 1)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(8, 1)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 1)).getTeamColor() == TeamColor.BLACK && !rook11Moved) {
+                        if (gameBoard.getPiece(new ChessPosition(8, 1)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 1)).getTeamColor() == TeamColor.BLACK && !rook81Moved) {
                             //Make sure (8,4) and (8,3) are empty
-                            ChessPosition step1 = new ChessPosition(8, 4);
-                            ChessPosition step2 = new ChessPosition(8, 3);
-                            if (gameBoard.getPiece(step1) == null && gameBoard.getPiece(step2) == null) {
-                                boolean safe = true;
-                                forceMove(new ChessMove(startPosition, step1, null));
-                                if (isInCheck(TeamColor.BLACK)) {
-                                    safe = false;
-                                }
-                                forceMove(new ChessMove(step1, step2, null));
-                                if (isInCheck(TeamColor.BLACK)) {
-                                    safe = false;
-                                }
-                                if (safe) {
-                                    legalMoves.add(new ChessMove(startPosition, step2, null));
-                                }
-                                forceMove(new ChessMove(step2, startPosition, null));
-                            }
-
+                            castleHelper(startPosition, new ChessPosition(8, 4), new ChessPosition(8, 3), legalMoves);
                         }
                     }
                     //Check for right-side castling
                     //Rook could have been captured without moving, so must verify it's still there
                     if (gameBoard.getPiece(new ChessPosition(8, 8)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(8, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 8)).getTeamColor() == TeamColor.BLACK && !rook11Moved) {
+                        if (gameBoard.getPiece(new ChessPosition(8, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 8)).getTeamColor() == TeamColor.BLACK && !rook88Moved) {
                             //Make sure (8,6) and (8,7) are empty
-                            ChessPosition step1 = new ChessPosition(8, 6);
-                            ChessPosition step2 = new ChessPosition(8, 7);
-                            if (gameBoard.getPiece(step1) == null && gameBoard.getPiece(step2) == null) {
-                                boolean safe = true;
-                                forceMove(new ChessMove(startPosition, step1, null));
-                                if (isInCheck(TeamColor.BLACK)) {
-                                    safe = false;
-                                }
-                                forceMove(new ChessMove(step1, step2, null));
-                                if (isInCheck(TeamColor.BLACK)) {
-                                    safe = false;
-                                }
-                                if (safe) {
-                                    legalMoves.add(new ChessMove(startPosition, step2, null));
-                                }
-                                forceMove(new ChessMove(step2, startPosition, null));
-                            }
-
+                            castleHelper(startPosition, new ChessPosition(8, 6), new ChessPosition(8, 7), legalMoves);
                         }
                     }
                 }
@@ -455,6 +387,28 @@ public class ChessGame {
             }
         }
         return allLegalMoves;
+    }
+
+    private void castleHelper(ChessPosition startPosition, ChessPosition step1, ChessPosition step2, Collection<ChessMove> legalMoves) {
+        TeamColor activeColor = gameBoard.getPiece(startPosition).getTeamColor();
+        if (isInCheck(activeColor)) {
+            return;
+        }
+        if (gameBoard.getPiece(step1) == null && gameBoard.getPiece(step2) == null) {
+            boolean safe = true;
+            forceMove(new ChessMove(startPosition, step1, null));
+            if (isInCheck(activeColor)) {
+                safe = false;
+            }
+            forceMove(new ChessMove(step1, step2, null));
+            if (isInCheck(activeColor)) {
+                safe = false;
+            }
+            if (safe) {
+                legalMoves.add(new ChessMove(startPosition, step2, null));
+            }
+            forceMove(new ChessMove(step2, startPosition, null));
+        }
     }
 
     private ChessBoard gameBoard;
