@@ -166,113 +166,22 @@ public class ChessPiece {
 
     private Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> legalMoves = new HashSet<>();
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        ChessPosition destination;
         //Check up-left diagonal
-        int destRow = row + 1;
-        int destCol = col - 1;
-        while (destRow <= 8 & destCol >= 1) {
-            destination = new ChessPosition(destRow, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow++;
-                destCol--;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, 1, -1, legalMoves);
         //Check up-right diagonal
-        destRow = row + 1;
-        destCol = col + 1;
-        while (destRow <= 8 & destCol <= 8) {
-            destination = new ChessPosition(destRow, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow++;
-                destCol++;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, 1, 1, legalMoves);
         //Check down-right diagonal
-        destRow = row - 1;
-        destCol = col + 1;
-        while (destRow >= 1 & destCol <= 8) {
-            destination = new ChessPosition(destRow, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow--;
-                destCol++;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, -1, 1, legalMoves);
         //Check down-left diagonal
-        destRow = row - 1;
-        destCol = col - 1;
-        while (destRow >= 1 & destCol >= 1) {
-            destination = new ChessPosition(destRow, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow--;
-                destCol--;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, -1, 1, legalMoves);
         //Check up moves
-        destRow = row + 1;
-        while (destRow <= 8) {
-            destination = new ChessPosition(destRow, col);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow++;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, 1, 0, legalMoves);
         //Check down moves
-        destRow = row - 1;
-        while (destRow >= 1) {
-            destination = new ChessPosition(destRow, col);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destRow--;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, -1, 0, legalMoves);
         //Check left moves
-        destCol = col - 1;
-        while (destCol >= 1) {
-            destination = new ChessPosition(row, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destCol--;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, 0, -1, legalMoves);
         //Check right moves
-        destCol = col + 1;
-        while (destCol <= 8) {
-            destination = new ChessPosition(row, destCol);
-            if (this.canMoveTo(board, destination)) {
-                legalMoves.add(new ChessMove(myPosition, destination, null));
-                if (board.getPiece(destination) != null) {break;}
-                destCol++;
-            } else {
-                break;
-            }
-        }
+        linearMoves(board, myPosition, 0, 1, legalMoves);
         return legalMoves;
     }
 
@@ -586,6 +495,37 @@ public class ChessPiece {
             legalMoves.add(new ChessMove(myPosition, destination, null));
         }
         return legalMoves;
+    }
+
+    private void linearMoves(ChessBoard board, ChessPosition myPosition, int rChange, int cChange, Collection<ChessMove> legalMoves) {
+        //rChange is change in row: 1 for up, -1 for down, 0 to stay in same row
+        //cChange is change in column: 1 for right, -1 for left, 0 to stay in same column
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        ChessPosition destination;
+        row += rChange;
+        col += cChange;
+        while (inBounds(row, col)) {
+            destination = new ChessPosition(row, col);
+            if (this.canMoveTo(board, destination)) {
+                legalMoves.add(new ChessMove(myPosition, destination, null));
+                if (board.getPiece(destination) != null) {break;}
+                row += rChange;
+                col += cChange;
+            } else {
+                break;
+            }
+        }
+    }
+
+    private boolean inBounds(int row, int col) {
+        if (row < 1 || row > 8) {
+            return false;
+        }
+        if (col < 1 || col > 8) {
+            return false;
+        }
+        return true;
     }
 
     private final ChessGame.TeamColor myColor;
