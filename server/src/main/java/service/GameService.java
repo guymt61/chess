@@ -52,7 +52,7 @@ public class GameService {
         return new CreateResult(ID);
     }
 
-    public JoinResult join(JoinRequest joinReq) throws ResponseException{
+    public JoinResult join(JoinRequest joinReq) throws ResponseException, DataAccessException{
         return null;
     }
 }

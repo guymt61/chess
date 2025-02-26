@@ -7,25 +7,25 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import model.*;
 import requestsresults.*;
-
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GameServiceTest {
     private GameDAO gameDAO;
-    private AuthDAO authDAO;
     private GameService service;
     private final AuthData authedUser = new AuthData("token", "authedUser");
+    private final AuthData authedUser2 = new AuthData("token2", "authedUser2");
     private final GameData testGame1 = new GameData(1, null, null, "game1", null);
     private final GameData testGame2 = new GameData(2, null, null, "game2", null);
 
     @BeforeEach
     void setup() {
         gameDAO = new MemoryGameDAO();
-        authDAO = new MemoryAuthDAO();
+        AuthDAO authDAO = new MemoryAuthDAO();
         service = new GameService(gameDAO, authDAO);
         authDAO.createAuth(authedUser);
+        authDAO.createAuth(authedUser2);
     }
 
     @Test
@@ -114,6 +114,81 @@ class GameServiceTest {
     }
 
     @Test
-    void join() {
+    @DisplayName("Basic Join White")
+    void joinWhite() throws ResponseException, DataAccessException{
+        gameDAO.createGame(testGame1);
+        service.join(new JoinRequest("token", "WHITE", 1));
+        GameData joinedGame = gameDAO.getGame(1);
+        assertNotNull(joinedGame);
+        assertEquals("authedUser", joinedGame.whiteUsername());
+    }
+
+    @Test
+    @DisplayName("Basic Join Black")
+    void joinBlack() throws ResponseException, DataAccessException{
+        gameDAO.createGame(testGame1);
+        service.join(new JoinRequest("token", "BLACK", 1));
+        GameData joinedGame = gameDAO.getGame(1);
+        assertNotNull(joinedGame);
+        assertEquals("authedUser", joinedGame.blackUsername());
+    }
+
+    @Test
+    @DisplayName("Join Both Colors")
+    void joinBoth() throws ResponseException, DataAccessException{
+        gameDAO.createGame(testGame1);
+        service.join(new JoinRequest("token", "WHITE", 1));
+        service.join(new JoinRequest("token2", "BLACK", 1));
+        GameData joinedGame = gameDAO.getGame(1);
+        assertNotNull(joinedGame);
+        assertEquals("authedUser", joinedGame.whiteUsername());
+        assertEquals("authedUser2", joinedGame.blackUsername());
+    }
+
+    @Test
+    @DisplayName("Join Missing Color")
+    void joinNoColor() throws DataAccessException{
+        gameDAO.createGame(testGame1);
+        try {
+            service.join(new JoinRequest("token", null, 1));
+            fail("Join should've thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(400, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Join With Bad ID")
+    void joinBadID() throws DataAccessException {
+        gameDAO.createGame(testGame1);
+        try {
+            service.join(new JoinRequest("token", "WHITE", 37));
+        } catch (ResponseException e) {
+            assertEquals(400, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Join Unauthorized")
+    void joinUnauthorized() throws DataAccessException{
+        gameDAO.createGame(testGame1);
+        try {
+            service.join(new JoinRequest("Fake Token", "WHITE", 1));
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Join Occupied")
+    void joinOccupied() throws DataAccessException, ResponseException{
+        gameDAO.createGame(testGame1);
+        service.join(new JoinRequest("token", "WHITE", 1));
+        try {
+            service.join(new JoinRequest("token2", "WHITE", 1));
+            fail("Second join should've thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(403, e.StatusCode());
+        }
     }
 }

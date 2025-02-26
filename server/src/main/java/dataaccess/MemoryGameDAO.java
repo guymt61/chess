@@ -24,7 +24,10 @@ public class MemoryGameDAO implements GameDAO {
         return games.get(ID);
     }
 
-    public void updateGame(GameData game) {
+    public void updateGame(GameData game) throws DataAccessException{
+        if (games.get(game.gameID()) == null) {
+            throw new DataAccessException("Error: Cannot update a game that doesn't exist");
+        }
         games.put(game.gameID(), game);
     }
 
