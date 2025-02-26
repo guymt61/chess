@@ -6,10 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import model.*;
-import requestsresults.ListRequest;
+import requestsresults.*;
 
-
-import java.util.Collection;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -66,7 +64,53 @@ class GameServiceTest {
     }
 
     @Test
-    void create() {
+    @DisplayName("Basic Create Game")
+    void basicCreate() throws ResponseException{
+        CreateResult result = service.create(new CreateRequest("Token", "game1"));
+        assertNotNull(result);
+        int createdID = result.gameID();
+        GameData createdGame = gameDAO.getGame(createdID);
+        assertNotNull(createdGame);
+        assertEquals("game1", createdGame.gameName());
+        assertNull(createdGame.whiteUsername());
+        assertNull(createdGame.blackUsername());
+        assertNotNull(createdGame.game());
+    }
+
+    @Test
+    @DisplayName("Unauthorized Create")
+    void unauthedCreate() {
+        try {
+            service.create(new CreateRequest("Fake Token", "game1"));
+            fail("Create should have thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(401, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Incomplete Create Request")
+    void badCreate() {
+        try {
+            service.create(new CreateRequest("Token", null));
+        } catch (ResponseException e) {
+            assertEquals(400, e.StatusCode());
+        }
+    }
+
+    @Test
+    @DisplayName("Duplicated Name Create")
+    void sameNameCreate() throws ResponseException{
+        CreateResult result1 = service.create(new CreateRequest("Token", "TestGame"));
+        CreateResult result2 = service.create(new CreateRequest("Token", "TestGame"));
+        int ID1 = result1.gameID();
+        GameData game1 = gameDAO.getGame(ID1);
+        int ID2 = result2.gameID();
+        GameData game2 = gameDAO.getGame(ID2);
+        assertNotNull(game1);
+        assertNotNull(game2);
+        assertNotEquals(ID1, ID2, "IDs should not be the same");
+        assertNotEquals(game1, game2, "Same game created twice");
     }
 
     @Test
