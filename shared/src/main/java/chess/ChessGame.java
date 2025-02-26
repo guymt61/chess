@@ -124,31 +124,37 @@ public class ChessGame {
         }
         if (move.getPromotionPiece() == null) {
             //If the move is En Passant, get rid of the captured pawn
-            if (gameBoard.getPiece(endPosition) == null && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN && startPosition.getColumn() != endPosition.getColumn()) {
-                gameBoard.addPiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()), null);
+            if (gameBoard.getPiece(endPosition) == null && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                if (startPosition.getColumn() != endPosition.getColumn()) {
+                    gameBoard.addPiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()), null);
+                }
             }
             gameBoard.addPiece(endPosition, movingPiece);
             gameBoard.addPiece(startPosition, null);
             //If the move is a Castle, move the rook into place
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 1 && startPosition.getColumn() == 5 && endPosition.getColumn() == 3 ) {
-                //White castle left
-                ChessMove rookJump = new ChessMove(new ChessPosition(1, 1), new ChessPosition(1, 4), null);
-                forceMove(rookJump);
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 1 ) {
+                if (startPosition.getColumn() == 5 && endPosition.getColumn() == 3) {
+                    //White castle left
+                    ChessMove rookJump = new ChessMove(new ChessPosition(1, 1), new ChessPosition(1, 4), null);
+                    forceMove(rookJump);
+                }
+                if (startPosition.getColumn() == 5 && endPosition.getColumn() == 7) {
+                    //White castle right
+                    ChessMove rookJump = new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null);
+                    forceMove(rookJump);
+                }
             }
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 1 && startPosition.getColumn() == 5 && endPosition.getColumn() == 7 ) {
-                //White castle right
-                ChessMove rookJump = new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null);
-                forceMove(rookJump);
-            }
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 8 && startPosition.getColumn() == 5 && endPosition.getColumn() == 3 ) {
-                //Black castle left
-                ChessMove rookJump = new ChessMove(new ChessPosition(8, 1), new ChessPosition(8, 4), null);
-                forceMove(rookJump);
-            }
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 8 && startPosition.getColumn() == 5 && endPosition.getColumn() == 7 ) {
-                //Black castle right
-                ChessMove rookJump = new ChessMove(new ChessPosition(8, 8), new ChessPosition(8, 6), null);
-                forceMove(rookJump);
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getRow() == 8){
+                if (startPosition.getColumn() == 5 && endPosition.getColumn() == 3) {
+                    //Black castle left
+                    ChessMove rookJump = new ChessMove(new ChessPosition(8, 1), new ChessPosition(8, 4), null);
+                    forceMove(rookJump);
+                }
+                if (startPosition.getColumn() == 5 && endPosition.getColumn() == 7) {
+                    //Black castle right
+                    ChessMove rookJump = new ChessMove(new ChessPosition(8, 8), new ChessPosition(8, 6), null);
+                    forceMove(rookJump);
+                }
             }
 
         }
