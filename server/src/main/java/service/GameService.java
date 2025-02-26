@@ -43,8 +43,8 @@ public class GameService {
             throw new ResponseException(400, "Error: Bad Request");
         }
         ChessGame newGame = new ChessGame();
-        int ID = IDs.nextInt();
-        while (usedIDs.contains(ID)) {
+        int ID = Math.abs(IDs.nextInt());
+        while (usedIDs.contains(ID) || ID == 0) {
             ID = IDs.nextInt();
         }
         usedIDs.add(ID);
@@ -53,6 +53,29 @@ public class GameService {
     }
 
     public JoinResult join(JoinRequest joinReq) throws ResponseException, DataAccessException{
-        return null;
+        verifyAuth(joinReq.authToken());
+        String username = authDAO.getAuth(joinReq.authToken()).user();
+        GameData gameToJoin = gameDAO.getGame(joinReq.gameID());
+        if (gameToJoin == null || joinReq.playerColor() == null) {
+            throw new ResponseException(400, "Error: bad request");
+        }
+        if (joinReq.playerColor().equals("WHITE")) {
+            if (gameToJoin.whiteUsername() != null) {
+                throw new ResponseException(403, "Error: already taken");
+            }
+            GameData updatedGame = new GameData(joinReq.gameID(), username, gameToJoin.blackUsername(), gameToJoin.gameName(), gameToJoin.game());
+            gameDAO.updateGame(updatedGame);
+        }
+        else if (joinReq.playerColor().equals("BLACK")) {
+            if (gameToJoin.blackUsername() != null) {
+                throw new ResponseException(403, "Error: already taken");
+            }
+            GameData updatedGame = new GameData(joinReq.gameID(), gameToJoin.whiteUsername(), username, gameToJoin.gameName(), gameToJoin.game());
+            gameDAO.updateGame(updatedGame);
+        }
+        else {
+            throw new ResponseException(400, "Error: bad request");
+        }
+        return new JoinResult();
     }
 }

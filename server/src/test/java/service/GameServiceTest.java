@@ -158,6 +158,18 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("Join With Bad Color")
+    void joinBadColor() throws DataAccessException{
+        gameDAO.createGame(testGame1);
+        try {
+            service.join(new JoinRequest("token", "Magenta", 1));
+            fail("Join should've thrown an error");
+        } catch (ResponseException e) {
+            assertEquals(400, e.StatusCode());
+        }
+    }
+
+    @Test
     @DisplayName("Join With Bad ID")
     void joinBadID() throws DataAccessException {
         gameDAO.createGame(testGame1);
