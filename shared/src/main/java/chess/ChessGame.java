@@ -91,92 +91,14 @@ public class ChessGame {
             gameBoard.addPiece(destination, aboutToGetCaptured);
         }
         //Check for En Passant
-        if (lastMovingPiece != null) {
-            //if (debug) {System.out.println("Recognizes a move was made");}
-            if (lastMovingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-                //if (debug) {System.out.println("Recognizes a pawn made the last move");}
-                int movedFromRow = lastMove.getStartPosition().getRow();
-                int movedToRow = lastMove.getEndPosition().getRow();
-                int movedInCol = lastMove.getStartPosition().getColumn();
-                if (Math.abs(movedFromRow - movedToRow) == 2) {
-                    //We now know that the last move was a pawn double move
-                    //if (debug) {System.out.println("Recognizes last move was double move");}
-                    if (startPosition.getRow() == movedToRow && movingPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-                        if (Math.abs(startPosition.getColumn() - movedInCol) == 1) {
-                            //We now know there is a pawn in the right place to En Passant, not necessarily of the right team
-                            if (lastMovingPiece.getTeamColor() == TeamColor.WHITE && movingPiece.getTeamColor() == TeamColor.BLACK) {
-                                //En passant on a white piece will be down and to the side
-                                //if (debug) {System.out.println("Recognizes Black can theoretically En Passant");}
-                                ChessPosition destination = new ChessPosition(movedToRow - 1, movedInCol);
-                                ChessMove enPassant = new ChessMove(startPosition, destination, null);
-                                forceMove(enPassant);
-                                gameBoard.addPiece(lastMove.getEndPosition(), null);
-                                if (!isInCheck(movingPiece.getTeamColor())) {
-                                    //if (debug) {System.out.println("Attempting to add En Passant to legal moves");}
-                                    legalMoves.add(enPassant);
-                                }
-                                forceMove(new ChessMove(destination, startPosition, null));
-                                gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
-                            }
-                            if (lastMovingPiece.getTeamColor() == TeamColor.BLACK && movingPiece.getTeamColor() == TeamColor.WHITE) {
-                                //En passant on a black piece will be up and to the side
-                                ChessPosition destination = new ChessPosition(movedToRow + 1, movedInCol);
-                                ChessMove enPassant = new ChessMove(startPosition, destination, null);
-                                forceMove(enPassant);
-                                gameBoard.addPiece(lastMove.getEndPosition(), null);
-                                if (!isInCheck(movingPiece.getTeamColor())) {
-                                    //if (debug) {System.out.println("Attempting to add En Passant to legal moves");}
-                                    legalMoves.add(enPassant);
-                                }
-                                forceMove(new ChessMove(destination, startPosition, null));
-                                gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        checkForBlackEnPassant(startPosition, legalMoves);
+        checkForWhiteEnPassant(startPosition, legalMoves);
         //Check for castling
-        if (!isInCheck(movingPiece.getTeamColor())) {
-            if (movingPiece.getPieceType() == ChessPiece.PieceType.KING) {
-                if (movingPiece.getTeamColor() == TeamColor.WHITE && !whiteKingMoved) {
-                    //Check for left-side castling
-                    //Rook could have been captured without moving, so must verify it's still there
-                    if (gameBoard.getPiece(new ChessPosition(1, 1)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(1, 1)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(1, 1)).getTeamColor() == TeamColor.WHITE && !rook11Moved) {
-                            //Make sure (1,4) and (1,3) are empty
-                            castleHelper(startPosition, new ChessPosition(1, 4), new ChessPosition(1, 3), legalMoves);
-                        }
-                    }
-                    //Check for right-side castling
-                    //Rook could have been captured without moving, so must verify it's still there
-                    if (gameBoard.getPiece(new ChessPosition(1, 8)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(1, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(1, 8)).getTeamColor() == TeamColor.WHITE && !rook18Moved) {
-                            //if (debug) {System.out.println("Verified a Rook is in the right place");}
-                            //Make sure (1,6) and (1,7) are empty
-                            castleHelper(startPosition, new ChessPosition(1, 6), new ChessPosition(1, 7), legalMoves);
-                        }
-                    }
-                }
-                if (movingPiece.getTeamColor() == TeamColor.BLACK && !blackKingMoved) {
-                    //Check for left-side castling
-                    //Rook could have been captured without moving, so must verify it's still there
-                    if (gameBoard.getPiece(new ChessPosition(8, 1)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(8, 1)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 1)).getTeamColor() == TeamColor.BLACK && !rook81Moved) {
-                            //Make sure (8,4) and (8,3) are empty
-                            castleHelper(startPosition, new ChessPosition(8, 4), new ChessPosition(8, 3), legalMoves);
-                        }
-                    }
-                    //Check for right-side castling
-                    //Rook could have been captured without moving, so must verify it's still there
-                    if (gameBoard.getPiece(new ChessPosition(8, 8)) != null) {
-                        if (gameBoard.getPiece(new ChessPosition(8, 8)).getPieceType() == ChessPiece.PieceType.ROOK && gameBoard.getPiece(new ChessPosition(8, 8)).getTeamColor() == TeamColor.BLACK && !rook88Moved) {
-                            //Make sure (8,6) and (8,7) are empty
-                            castleHelper(startPosition, new ChessPosition(8, 6), new ChessPosition(8, 7), legalMoves);
-                        }
-                    }
-                }
-            }
+        if (startPosition.getRow() == 1 && startPosition.getColumn() == 5) {
+            checkForWhiteCastle(legalMoves);
+        }
+        if (startPosition.getRow() == 8 && startPosition.getColumn() == 5) {
+            checkForBlackCastle(legalMoves);
         }
         return legalMoves;
     }
@@ -389,7 +311,72 @@ public class ChessGame {
         return allLegalMoves;
     }
 
+    private void checkForBlackCastle(Collection<ChessMove> legalMoves) {
+        ChessPosition startPosition = new ChessPosition(8, 5);
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        if (movingPiece.getPieceType() == null) {
+            return;
+        }
+        if (movingPiece.getPieceType() != ChessPiece.PieceType.KING) {
+            return;
+        }
+        if (movingPiece.getTeamColor() != TeamColor.BLACK || blackKingMoved) {
+            return;
+        }
+        //Check for left-side castling
+        //Rook could have been captured without moving, so must verify it's still there
+        if (gameBoard.getPiece(new ChessPosition(8, 1)) != null && !rook81Moved) {
+            ChessPiece castlePartner = gameBoard.getPiece(new ChessPosition(8, 1));
+            if (castlePartner.getPieceType() == ChessPiece.PieceType.ROOK && castlePartner.getTeamColor() == TeamColor.BLACK) {
+                //Make sure (8,4) and (8,3) are empty
+                castleHelper(startPosition, new ChessPosition(8, 4), new ChessPosition(8, 3), legalMoves);
+            }
+        }
+        //Check for right-side castling
+        //Rook could have been captured without moving, so must verify it's still there
+        if (gameBoard.getPiece(new ChessPosition(8, 8)) != null && !rook88Moved) {
+            ChessPiece castlePartner = gameBoard.getPiece(new ChessPosition(8, 8));
+            if (castlePartner.getPieceType() == ChessPiece.PieceType.ROOK && castlePartner.getTeamColor() == TeamColor.BLACK) {
+                //Make sure (8,6) and (8,7) are empty
+                castleHelper(startPosition, new ChessPosition(8, 6), new ChessPosition(8, 7), legalMoves);
+            }
+        }
+    }
+
+    private void checkForWhiteCastle(Collection<ChessMove> legalMoves) {
+        ChessPosition startPosition = new ChessPosition(1, 5);
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        if (movingPiece.getPieceType() == null) {
+            return;
+        }
+        if (movingPiece.getPieceType() != ChessPiece.PieceType.KING) {
+            return;
+        }
+        if (movingPiece.getTeamColor() != TeamColor.WHITE || whiteKingMoved) {
+            return;
+        }
+        //Check for left-side castling
+        //Rook could have been captured without moving, so must verify it's still there
+        if (gameBoard.getPiece(new ChessPosition(1, 1)) != null && !rook11Moved) {
+            ChessPiece castlePartner = gameBoard.getPiece(new ChessPosition(1, 1));
+            if (castlePartner.getPieceType() == ChessPiece.PieceType.ROOK && castlePartner.getTeamColor() == TeamColor.WHITE) {
+                //Make sure (1,4) and (1,3) are empty
+                castleHelper(startPosition, new ChessPosition(1, 4), new ChessPosition(1, 3), legalMoves);
+            }
+        }
+        //Check for right-side castling
+        //Rook could have been captured without moving, so must verify it's still there
+        if (gameBoard.getPiece(new ChessPosition(1, 8)) != null && !rook18Moved) {
+            ChessPiece castlePartner = gameBoard.getPiece(new ChessPosition(1, 8));
+            if (castlePartner.getPieceType() == ChessPiece.PieceType.ROOK && castlePartner.getTeamColor() == TeamColor.WHITE) {
+                //Make sure (1,6) and (1,7) are empty
+                castleHelper(startPosition, new ChessPosition(1, 6), new ChessPosition(1, 7), legalMoves);
+            }
+        }
+    }
+
     private void castleHelper(ChessPosition startPosition, ChessPosition step1, ChessPosition step2, Collection<ChessMove> legalMoves) {
+        //Ensures that the castling move isn't into, out of, or through check
         TeamColor activeColor = gameBoard.getPiece(startPosition).getTeamColor();
         if (isInCheck(activeColor)) {
             return;
@@ -409,6 +396,80 @@ public class ChessGame {
             }
             forceMove(new ChessMove(step2, startPosition, null));
         }
+    }
+
+    private boolean lastMoveWhitePawnDouble() {
+        if (lastMovingPiece == null) {
+            return false;
+        }
+        if (lastMovingPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+        //Checking for color is unnecessary, since black pawns cannot make the move below
+        return (lastMove.getStartPosition().getRow() == 2 && lastMove.getEndPosition().getRow() == 4);
+    }
+
+    private boolean lastMoveBlackPawnDouble() {
+        if (lastMovingPiece == null) {
+            return false;
+        }
+        if (lastMovingPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+        //Checking for color is unnecessary, since black pawns cannot make the move below
+        return (lastMove.getStartPosition().getRow() == 7 && lastMove.getEndPosition().getRow() == 5);
+    }
+
+    private void checkForWhiteEnPassant(ChessPosition startPosition, Collection<ChessMove> legalMoves) {
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        int row = startPosition.getRow();
+        int col = startPosition.getColumn();
+        if (movingPiece.getPieceType() != ChessPiece.PieceType.PAWN || movingPiece.getTeamColor() != TeamColor.WHITE) {
+            return;
+        }
+        if (!lastMoveBlackPawnDouble()) {
+            return;
+        }
+        ChessPosition victim = lastMove.getEndPosition();
+        if (Math.abs(victim.getColumn() - col) != 1 || row != 5) {
+            return;
+        }
+        //En passant on a black piece will be up and to the side
+        ChessPosition destination = new ChessPosition(6, victim.getColumn());
+        ChessMove enPassant = new ChessMove(startPosition, destination, null);
+        forceMove(enPassant);
+        gameBoard.addPiece(lastMove.getEndPosition(), null);
+        if (!isInCheck(movingPiece.getTeamColor())) {
+            legalMoves.add(enPassant);
+        }
+        forceMove(new ChessMove(destination, startPosition, null));
+        gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
+    }
+
+    private void checkForBlackEnPassant(ChessPosition startPosition, Collection<ChessMove> legalMoves) {
+        ChessPiece movingPiece = gameBoard.getPiece(startPosition);
+        int row = startPosition.getRow();
+        int col = startPosition.getColumn();
+        if (movingPiece.getPieceType() != ChessPiece.PieceType.PAWN || movingPiece.getTeamColor() != TeamColor.BLACK) {
+            return;
+        }
+        if (!lastMoveWhitePawnDouble()) {
+            return;
+        }
+        ChessPosition victim = lastMove.getEndPosition();
+        if (Math.abs(victim.getColumn() - col) != 1 || row != 4) {
+            return;
+        }
+        //En passant on a white piece will be up and to the side
+        ChessPosition destination = new ChessPosition(3, victim.getColumn());
+        ChessMove enPassant = new ChessMove(startPosition, destination, null);
+        forceMove(enPassant);
+        gameBoard.addPiece(lastMove.getEndPosition(), null);
+        if (!isInCheck(movingPiece.getTeamColor())) {
+            legalMoves.add(enPassant);
+        }
+        forceMove(new ChessMove(destination, startPosition, null));
+        gameBoard.addPiece(lastMove.getEndPosition(),lastMovingPiece);
     }
 
     private ChessBoard gameBoard;
