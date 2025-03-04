@@ -9,18 +9,28 @@ import dataaccess.*;
 
 
 public class Server {
-    private final UserService userService;
-    private final GameService gameService;
-    private final UserDAO userDAO;
-    private final AuthDAO authDAO;
-    private final GameDAO gameDAO;
+    private UserService userService;
+    private GameService gameService;
+    private UserDAO userDAO;
+    private AuthDAO authDAO;
+    private GameDAO gameDAO;
 
-    public Server() throws DataAccessException, ResponseException{
-        userDAO = new MySQLUserDAO();
-        authDAO = new MySQLAuthDAO();
-        gameDAO = new MySQLGameDAO();
-        userService = new UserService(userDAO, authDAO);
-        gameService = new GameService(gameDAO, authDAO);
+    public Server() {
+        try {
+            userDAO = new MySQLUserDAO();
+            authDAO = new MySQLAuthDAO();
+            gameDAO = new MySQLGameDAO();
+            userService = new UserService(userDAO, authDAO);
+            gameService = new GameService(gameDAO, authDAO);
+        }
+        catch (Throwable ex) {
+            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+            userService = null;
+            gameService = null;
+            userDAO = null;
+            authDAO = null;
+            gameDAO = null;
+        }
     }
 
     public int run(int desiredPort) {
