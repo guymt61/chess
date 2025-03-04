@@ -15,7 +15,7 @@ public class Server {
     private final AuthDAO authDAO;
     private final GameDAO gameDAO;
 
-    public Server() {
+    public Server() throws DataAccessException, ResponseException{
         userDAO = new MySQLUserDAO();
         authDAO = new MySQLAuthDAO();
         gameDAO = new MySQLGameDAO();
