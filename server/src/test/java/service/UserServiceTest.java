@@ -40,9 +40,14 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
-        service = new UserService(userDAO, authDAO);
+        try {
+            userDAO = new MemoryUserDAO();
+            authDAO = new MemoryAuthDAO();
+            service = new UserService(userDAO, authDAO);
+        }
+        catch (Throwable ex) {
+            System.out.println(String.format("Test setup failed: %s", ex.getMessage()));
+        }
     }
 
     @Test
