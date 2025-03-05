@@ -17,14 +17,30 @@ public class MySQLUserDAO implements UserDAO {
 
     //Find userData based on username
     public UserData getUser(String username) {
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT json FROM users WHERE username=?";
+            try(var ps = conn.prepareStatement(statement)) {
+                ps.setString(1, username);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        var json = rs.getString("json");
+                        return new Gson().fromJson(json, UserData.class);
+                    }
+                }
+            }
+        }
+        catch (Exception e) {
+            return null;
+        }
         return null;
     }
 
     //Add a new user
     public void createUser(UserData data) {
-        var statement = "INSERT INTO pet (username, password, email) VALUES (?, ?, ?)";
+        var statement = "INSERT INTO users (username, password, email, json) VALUES (?, ?, ?, ?)";
+        var json = new Gson().toJson(data);
         try {
-            executeUpdate(statement, data.username(), data.password(), data.email());
+            executeUpdate(statement, data.username(), data.password(), data.email(), json);
         }
         catch (Throwable ex) {
             System.out.println(ex.getMessage());
@@ -59,6 +75,7 @@ CREATE TABLE IF NOT EXISTS `chess`.`users` (
   `username` VARCHAR(100) NOT NULL,
   `password` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
+  `json` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE);
 """
