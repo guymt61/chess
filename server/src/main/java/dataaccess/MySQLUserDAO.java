@@ -55,13 +55,12 @@ public class MySQLUserDAO implements UserDAO {
 
     private final String[] createStatements = {
             """
-CREATE TABLE IF NOT EXISTS users (
-'username' varchar(256) NOT NULL
-'password' varchar(256) NOT NULL
-'email' varchar(256) NOT NULL
-PRIMARY KEY ('username')
-INDEX(password)
-)
+CREATE TABLE IF NOT EXISTS `chess`.`users` (
+  `username` VARCHAR(100) NOT NULL,
+  `password` VARCHAR(100) NOT NULL,
+  `email` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`username`),
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE);
 """
     };
 

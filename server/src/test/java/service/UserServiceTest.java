@@ -41,7 +41,7 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         try {
-            userDAO = new MemoryUserDAO();
+            userDAO = new MySQLUserDAO();
             authDAO = new MemoryAuthDAO();
             service = new UserService(userDAO, authDAO);
         }

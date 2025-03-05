@@ -24,7 +24,7 @@ public class Server {
             gameService = new GameService(gameDAO, authDAO);
         }
         catch (Throwable ex) {
-            System.out.printf("Unable to start server: %s%n", ex.getMessage());
+            System.out.printf("Unable to start server: %s %n", ex);
             userService = null;
             gameService = null;
             userDAO = null;
