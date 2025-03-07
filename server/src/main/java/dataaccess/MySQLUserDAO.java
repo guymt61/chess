@@ -1,9 +1,9 @@
 package dataaccess;
 
-import com.google.gson.Gson;
 import exception.ResponseException;
 import model.UserData;
 import java.sql.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -13,18 +13,26 @@ public class MySQLUserDAO implements UserDAO {
         configureDatabase();
     }
 
-    public void clear() {}
+    public void clear() {
+        var statement = "DROP TABLE users";
+        try {
+            executeUpdate(statement);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
     //Find userData based on username
+    //Password will be hashed
     public UserData getUser(String username) {
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM users WHERE username=?";
+            var statement = "SELECT * FROM users WHERE username=?";
             try(var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, username);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        var json = rs.getString("json");
-                        return new Gson().fromJson(json, UserData.class);
+                        return new UserData(rs.getString("username"), rs.getString("password"), rs.getString("email"));
                     }
                 }
             }
@@ -37,10 +45,10 @@ public class MySQLUserDAO implements UserDAO {
 
     //Add a new user
     public void createUser(UserData data) {
-        var statement = "INSERT INTO users (username, password, email, json) VALUES (?, ?, ?, ?)";
-        var json = new Gson().toJson(data);
+        var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
         try {
-            executeUpdate(statement, data.username(), data.password(), data.email(), json);
+            String hashedPass = BCrypt.hashpw(data.password(), BCrypt.gensalt());
+            executeUpdate(statement, data.username(), hashedPass, data.email());
         }
         catch (Throwable ex) {
             System.out.println(ex.getMessage());
