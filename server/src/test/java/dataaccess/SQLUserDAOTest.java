@@ -10,7 +10,6 @@ class SQLUserDAOTest {
     private static UserDAO userDAO;
     private final UserData newUser1 = new UserData("testUser1", "superSecure", "test@test.test");
     private final UserData newUser2 = new UserData("testUser2", "superSecure", "test@test.test");
-    private final UserData newUser3 = new UserData("testUser3", "superSecure", "test@test.test");
 
     @BeforeAll
     static void dupeTable() {
@@ -89,13 +88,24 @@ class SQLUserDAOTest {
 
     @Test
     @Order(3)
+    @DisplayName("Get User That Exists")
     void getUser() {
+        System.out.println(countRows());
+        assertNotNull(userDAO.getUser(newUser2.username()));
+    }
 
+    @Test
+    @Order(4)
+    @DisplayName("Get User That Doesn't Exist")
+    void getFakeUser() {
+        assertNull(userDAO.getUser("fakeyMcFakePants"));
     }
 
     @Test
     @Order(5)
     void clear() {
+        userDAO.clear();
+        assertEquals(0, countRows());
     }
 
     private int countRows() {
