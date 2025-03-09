@@ -14,7 +14,7 @@ public class MySQLUserDAO implements UserDAO {
     }
 
     public void clear() {
-        var statement = "DROP TABLE users";
+        var statement = "TRUNCATE users";
         try {
             executeUpdate(statement);
         }
@@ -79,11 +79,10 @@ public class MySQLUserDAO implements UserDAO {
 
     private final String[] createStatements = {
             """
-CREATE TABLE IF NOT EXISTS `chess`.`users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `username` VARCHAR(100) NOT NULL,
   `password` VARCHAR(100) NOT NULL,
   `email` VARCHAR(100) NOT NULL,
-  `json` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`username`),
   UNIQUE INDEX `username_UNIQUE` (`username` ASC) VISIBLE);
 """
