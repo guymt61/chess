@@ -61,7 +61,9 @@ public class MySQLUserDAO implements UserDAO {
             try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (var i = 0; i < params.length; i++) {
                     var param = params[i];
-                    if (param instanceof String p) ps.setString(i + 1, p);
+                    if (param instanceof String p) {
+                        ps.setString(i + 1, p);
+                    }
                 }
                 ps.executeUpdate();
 
