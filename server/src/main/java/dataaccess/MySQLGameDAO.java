@@ -73,7 +73,21 @@ public class MySQLGameDAO implements GameDAO {
 
     //Produce a list of all GameData
     public HashSet<GameData> listGames() {
-        return null;
+        HashSet<GameData> allGames = new HashSet<>();
+        try (var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT game FROM games";
+            try (var ps = conn.prepareStatement(statement)) {
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        GameData gameData = new Gson().fromJson(rs.getString(1), GameData.class);
+                        allGames.add(gameData);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return allGames;
     }
 
     private final String[] createStatements = {
