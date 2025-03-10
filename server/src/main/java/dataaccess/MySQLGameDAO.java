@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
 
@@ -31,7 +32,8 @@ public class MySQLGameDAO implements GameDAO {
     //Add a new game
     public void createGame(GameData game) {
         var statement = "INSERT INTO games (id, whiteUsername, blackUsername, name, game) VALUES (?, ?, ?, ?, ?)";
-        var json = new Gson().toJson(game.game());
+        Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        var json = gson.toJson(game.game());
         try {
             executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), json);
         }
@@ -51,7 +53,8 @@ public class MySQLGameDAO implements GameDAO {
                 String white = rs.getString("whiteUsername");
                 String black = rs.getString("blackUsername");
                 String name = rs.getString("name");
-                ChessGame foundGame = new Gson().fromJson(rs.getString("game"), ChessGame.class);
+                var json = rs.getString("game");
+                ChessGame foundGame = new Gson().fromJson(json, ChessGame.class);
                 return new GameData(id, white, black, name, foundGame);
             }
 
@@ -68,7 +71,8 @@ public class MySQLGameDAO implements GameDAO {
         }
         var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, game=? WHERE id=?";
         try {
-            var json = new Gson().toJson(game.game());
+            Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+            var json = gson.toJson(game.game());
             executeUpdate(statement, game.whiteUsername(), game.blackUsername(), json, game.gameID());
         }
         catch (Exception e) {
@@ -84,8 +88,13 @@ public class MySQLGameDAO implements GameDAO {
             try (var ps = conn.prepareStatement(statement)) {
                 try (var rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        GameData foundGame = getGame(rs.getInt("id"));
-                        allGames.add(foundGame);
+                        int id = rs.getInt("id");
+                        String white = rs.getString("whiteUsername");
+                        String black = rs.getString("blackUsername");
+                        String name = rs.getString("name");
+                        var json = rs.getString("game");
+                        ChessGame foundGame = new Gson().fromJson(json, ChessGame.class);
+                        allGames.add(new GameData(id, white, black, name, foundGame));
                     }
                 }
             }
