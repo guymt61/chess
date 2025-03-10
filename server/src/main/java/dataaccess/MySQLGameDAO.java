@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.GameData;
@@ -41,13 +42,17 @@ public class MySQLGameDAO implements GameDAO {
 
     //Find a game based on ID
     public GameData getGame(int id) {
-        var statement = "SELECT game FROM games WHERE id=?";
+        var statement = "SELECT * FROM games WHERE id=?";
         try (var conn = DatabaseManager.getConnection()) {
             var ps = conn.prepareStatement(statement);
             ps.setInt(1, id);
             var rs = ps.executeQuery();
             if (rs.next()) {
-                return new Gson().fromJson(rs.getString(1), GameData.class);
+                String white = rs.getString("whiteUsername");
+                String black = rs.getString("blackUsername");
+                String name = rs.getString("name");
+                ChessGame foundGame = new Gson().fromJson(rs.getString("game"), ChessGame.class);
+                return new GameData(id, white, black, name, foundGame);
             }
 
         } catch (Exception e) {
@@ -61,10 +66,10 @@ public class MySQLGameDAO implements GameDAO {
         if (getGame(game.gameID()) == null) {
             throw new DataAccessException("Cannot update game that doesn't exist");
         }
-        var statement = "UPDATE games SET game=? WHERE id=?";
+        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, game=? WHERE id=?";
         try {
             var json = new Gson().toJson(game.game());
-            executeUpdate(statement, json, game.gameID());
+            executeUpdate(statement, game.whiteUsername(), game.blackUsername(), json, game.gameID());
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -75,12 +80,12 @@ public class MySQLGameDAO implements GameDAO {
     public HashSet<GameData> listGames() {
         HashSet<GameData> allGames = new HashSet<>();
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT game FROM games";
+            var statement = "SELECT id FROM games";
             try (var ps = conn.prepareStatement(statement)) {
                 try (var rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        GameData gameData = new Gson().fromJson(rs.getString(1), GameData.class);
-                        allGames.add(gameData);
+                        GameData foundGame = getGame(rs.getInt("id"));
+                        allGames.add(foundGame);
                     }
                 }
             }
