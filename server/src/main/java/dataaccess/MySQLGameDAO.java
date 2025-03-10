@@ -84,7 +84,7 @@ public class MySQLGameDAO implements GameDAO {
     public HashSet<GameData> listGames() {
         HashSet<GameData> allGames = new HashSet<>();
         try (var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT id FROM games";
+            var statement = "SELECT * FROM games";
             try (var ps = conn.prepareStatement(statement)) {
                 try (var rs = ps.executeQuery()) {
                     while (rs.next()) {
