@@ -5,24 +5,35 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
-
-import java.sql.*;
 import java.util.HashSet;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class MySQLGameDAO implements GameDAO {
 
+    private final MySQLHelper helper = new MySQLHelper();
+
     public MySQLGameDAO() throws DataAccessException, ResponseException {
-        configureDatabase();
+        String[] createStatements = {
+                """
+CREATE TABLE IF NOT EXISTS games (
+`id` int NOT NULL,
+`whiteUsername` varchar(256),
+`blackUsername` varchar(256),
+`name` varchar(256) NOT NULL,
+`game` text NOT NULL,
+PRIMARY KEY (`id`),
+INDEX(id)
+)
+"""
+        };
+        helper.configureDatabase(createStatements);
     }
 
     //Clear all games
     public void clear() {
         var statement = "TRUNCATE games";
         try {
-            executeUpdate(statement);
+            helper.executeUpdate(statement);
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -35,7 +46,7 @@ public class MySQLGameDAO implements GameDAO {
         Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
         var json = gson.toJson(game.game());
         try {
-            executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), json);
+            helper.executeUpdate(statement, game.gameID(), game.whiteUsername(), game.blackUsername(), game.gameName(), json);
         }
         catch (Throwable ex) {
             System.out.println(ex.getMessage());
@@ -73,7 +84,7 @@ public class MySQLGameDAO implements GameDAO {
         try {
             Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
             var json = gson.toJson(game.game());
-            executeUpdate(statement, game.whiteUsername(), game.blackUsername(), json, game.gameID());
+            helper.executeUpdate(statement, game.whiteUsername(), game.blackUsername(), json, game.gameID());
         }
         catch (Exception e) {
             System.out.println(e.getMessage());
@@ -102,62 +113,6 @@ public class MySQLGameDAO implements GameDAO {
             System.out.println(e.getMessage());
         }
         return allGames;
-    }
-
-    private final String[] createStatements = {
-            """
-CREATE TABLE IF NOT EXISTS games (
-`id` int NOT NULL,
-`whiteUsername` varchar(256),
-`blackUsername` varchar(256),
-`name` varchar(256) NOT NULL,
-`game` text NOT NULL,
-PRIMARY KEY (`id`),
-INDEX(id)
-)
-"""
-    };
-
-    private void configureDatabase() throws ResponseException, DataAccessException {
-        DatabaseManager.createDatabase();
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new ResponseException(500, String.format("Unable to configure database: %s", ex.getMessage()));
-        }
-    }
-
-    private int executeUpdate(String statement, Object... params) throws ResponseException, DataAccessException {
-        try (var conn = DatabaseManager.getConnection()) {
-            try (var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (var i = 0; i < params.length; i++) {
-                    var param = params[i];
-                    if (param instanceof Integer integer) {
-                        ps.setInt(i + 1, integer);
-                    }
-                    else if (param instanceof String p) {
-                        ps.setString(i + 1, p);
-                    }
-                    else if (param == null) {
-                        ps.setNull(i + 1, NULL);
-                    }
-                }
-                ps.executeUpdate();
-
-                var rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-
-                return 0;
-            }
-        } catch (SQLException e) {
-            throw new ResponseException(500, String.format("unable to update database: %s, %s", statement, e.getMessage()));
-        }
     }
 
 }
