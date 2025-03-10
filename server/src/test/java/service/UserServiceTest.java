@@ -155,7 +155,7 @@ class UserServiceTest {
     void incorrectPassword() {
         userDAO.createUser(testUser1);
         try {
-            service.login(new LoginRequest("testUser1", "This isnt correct"));
+            service.login(new LoginRequest("testUser1", "ThisIsntCorrect"));
             fail("Login was supposed to fail");
         } catch (ResponseException e) {
             assertEquals(401, e.statusCode());

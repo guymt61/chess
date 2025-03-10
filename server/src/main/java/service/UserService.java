@@ -42,11 +42,15 @@ public class UserService {
         String password = loginRequest.password();
         UserData user = userDAO.getUser(username);
         if (user != null) {
-            if (user.password().equals(password) || BCrypt.checkpw(password,user.password())) {
-                String newAuthToken = UUID.randomUUID().toString();
-                AuthData newAuth = new AuthData(newAuthToken, username);
-                authDAO.createAuth(newAuth);
-                return new LoginResult(username, newAuthToken);
+            try {
+                if (user.password().equals(password) || BCrypt.checkpw(password, user.password())) {
+                    String newAuthToken = UUID.randomUUID().toString();
+                    AuthData newAuth = new AuthData(newAuthToken, username);
+                    authDAO.createAuth(newAuth);
+                    return new LoginResult(username, newAuthToken);
+                }
+            } catch (Exception e) {
+                throw new ResponseException(401, "Error: unauthorized");
             }
         }
         throw new ResponseException(401, "Error: unauthorized");
