@@ -41,7 +41,8 @@ public class ServerFacade {
 
     public ListResult list(String authToken) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("GET", path, null, authToken, ListResult.class);
+        ListRequest request = new ListRequest(authToken);
+        return this.makeRequest("GET", path, request, authToken, ListResult.class);
     }
 
     public CreateResult create(String gameName, String authToken) throws ResponseException{

@@ -104,4 +104,16 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    @DisplayName("Good list request")
+    @Order(7)
+    public void goodList() throws ResponseException {
+        RegisterResult registerResult = facade.register("testUser1", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
+        facade.create("game1", authToken);
+        ListResult listResult = facade.list(authToken);
+        assertFalse(listResult.games().isEmpty());
+        assertEquals(1, listResult.games().size());
+    }
+
 }
