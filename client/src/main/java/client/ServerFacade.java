@@ -17,16 +17,16 @@ public class ServerFacade {
     }
 
 
-    public AuthData register(String username, String password, String email) throws ResponseException {
+    public RegisterResult register(String username, String password, String email) throws ResponseException {
         var path = "/user";
-        UserData user = new UserData(username, password, email);
-        return this.makeRequest("POST", path, user, null, AuthData.class);
+        RegisterRequest request = new RegisterRequest(username, password, email);
+        return this.makeRequest("POST", path, request, null, RegisterResult.class);
     }
 
-    public AuthData login(String username, String password) throws ResponseException {
+    public LoginResult login(String username, String password) throws ResponseException {
         var path = "/session";
-        UserData user = new UserData(username, password, null);
-        return this.makeRequest("POST",path, user, null, AuthData.class);
+        LoginRequest request = new LoginRequest(username, password);
+        return this.makeRequest("POST",path, request, null, LoginResult.class);
     }
 
     public void logout(String authToken) throws ResponseException {
@@ -39,13 +39,9 @@ public class ServerFacade {
         this.makeRequest("DELETE", path, null, null, null);
     }
 
-    public GameData[] list(AuthData auth) throws ResponseException {
-        String authToken = auth.authToken();
+    public ListResult list(String authToken) throws ResponseException {
         var path = "/game";
-        record listGameResponse(GameData[] game) {
-        }
-        var response = this.makeRequest("GET", path, null, authToken, listGameResponse.class);
-        return response.game();
+        return this.makeRequest("GET", path, null, authToken, ListResult.class);
     }
 
     public CreateResult create(String gameName, String authToken) throws ResponseException{
@@ -54,8 +50,10 @@ public class ServerFacade {
         return this.makeRequest("POST", path, request, authToken, CreateResult.class);
     }
 
-    public void join(String playerColor) throws ResponseException {
+    public void join(String playerColor, int gameID, String authToken) throws ResponseException {
         var path = "/game";
+        JoinRequest request = new JoinRequest(authToken, playerColor, gameID);
+        this.makeRequest("PUT", path, request, authToken, null);
     }
 
     private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws ResponseException {

@@ -2,7 +2,7 @@ import client.ServerFacade;
 import exception.ResponseException;
 import model.*;
 import org.junit.jupiter.api.*;
-import requestsresults.CreateResult;
+import requestsresults.*;
 import server.Server;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,9 +41,9 @@ public class ServerFacadeTests {
     @DisplayName("Good register request")
     @Order(1)
     public void goodRegister() throws ResponseException{
-            AuthData authData = facade.register("testUser1", "SuperSecure", "test@test.test");
-            assertNotNull(authData);
-            assertTrue(authData.authToken().length() > 10);
+            RegisterResult result = facade.register("testUser1", "SuperSecure", "test@test.test");
+            assertNotNull(result);
+            assertTrue(result.authToken().length() > 10);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class ServerFacadeTests {
     @Order(2)
     public void badRegister(){
         try {
-            AuthData authData = facade.register("NoPassword", null, "test@test.test");
+            facade.register("NoPassword", null, "test@test.test");
             fail("Register should have thrown an error for null password");
         } catch (ResponseException e) {
             //yippee
@@ -63,9 +63,9 @@ public class ServerFacadeTests {
     @Order(3)
     public void goodLogin() throws ResponseException{
         facade.register("testUser1", "SuperSecure", "test@test.test");
-        AuthData authData = facade.login("testUser1", "SuperSecure");
-        assertNotNull(authData);
-        assertTrue(authData.authToken().length() > 10);
+        LoginResult result = facade.login("testUser1", "SuperSecure");
+        assertNotNull(result);
+        assertTrue(result.authToken().length() > 10);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ServerFacadeTests {
     @Order(4)
     public void badLogin() {
         try {
-            AuthData authData = facade.login("IDon't", "Exist");
+            facade.login("IDon't", "Exist");
             fail("Login should've thrown an error");
         } catch (ResponseException e) {
             //wahoo
@@ -84,8 +84,8 @@ public class ServerFacadeTests {
     @DisplayName("Good create request")
     @Order(5)
     public void goodCreate() throws ResponseException {
-        AuthData authData = facade.register("testUser1", "SuperSecure", "test@test.test");
-        String authToken = authData.authToken();
+        RegisterResult registerResult = facade.register("testUser1", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
         CreateResult result = facade.create("testGame", authToken);
         assertNotNull(result);
         int createdID = result.gameID();

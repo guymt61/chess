@@ -1,6 +1,7 @@
 package client;
 import exception.ResponseException;
 import model.*;
+import requestsresults.*;
 
 import java.util.Arrays;
 
@@ -58,10 +59,10 @@ public class ChessClient {
 
     public String signIn(String... params) throws ResponseException {
         if (params.length >= 2) {
-            AuthData authData = server.login(params[0], params[1]);
-            if (authData != null) {
-                authToken = authData.authToken();
-                username = authData.user();
+            LoginResult result = server.login(params[0], params[1]);
+            if (result != null) {
+                authToken = result.authToken();
+                username = result.username();
                 state = State.SIGNEDIN;
                 return String.format("Signed in as %s", username);
             }
