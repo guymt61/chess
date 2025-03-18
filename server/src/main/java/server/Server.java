@@ -1,11 +1,12 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
-import requestsresults.*;
 import spark.*;
 import service.*;
 import dataaccess.*;
+import requestsresults.*;
 
 
 public class Server {
@@ -90,7 +91,8 @@ public class Server {
         CreateRequest nameOnly = new Gson().fromJson(req.body(), CreateRequest.class);
         CreateRequest createRequest = new CreateRequest(req.headers("Authorization"), nameOnly.gameName());
         CreateResult createResult = gameService.create(createRequest);
-        return new Gson().toJson(createResult);
+        var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        return gson.toJson(createResult);
     }
 
     private Object join(Request req, Response res) throws ResponseException, DataAccessException {

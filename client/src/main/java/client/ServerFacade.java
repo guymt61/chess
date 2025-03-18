@@ -3,6 +3,7 @@ package client;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.*;
+import requestsresults.*;
 
 import java.io.*;
 import java.net.*;
@@ -47,9 +48,10 @@ public class ServerFacade {
         return response.game();
     }
 
-    public int create(String gameName, String authToken) throws ResponseException{
+    public CreateResult create(String gameName, String authToken) throws ResponseException{
         var path = "/game";
-        return this.makeRequest("POST", path, gameName, authToken, Integer.class);
+        CreateRequest request = new CreateRequest(authToken, gameName);
+        return this.makeRequest("POST", path, request, authToken, CreateResult.class);
     }
 
     public void join(String playerColor) throws ResponseException {
@@ -63,10 +65,7 @@ public class ServerFacade {
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
-            writeBody(request, http);
-            if (authToken != null) {
-                http.addRequestProperty("Authorization", authToken);
-            }
+            writeBody(request, http, authToken);
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
@@ -78,8 +77,11 @@ public class ServerFacade {
     }
 
 
-    private static void writeBody(Object request, HttpURLConnection http) throws IOException {
+    private static void writeBody(Object request, HttpURLConnection http, String authToken) throws IOException {
         if (request != null) {
+            if (authToken != null) {
+                http.addRequestProperty("Authorization", authToken);
+            }
             http.addRequestProperty("Content-Type", "application/json");
             String reqData = new Gson().toJson(request);
             try (OutputStream reqBody = http.getOutputStream()) {

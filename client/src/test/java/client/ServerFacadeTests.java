@@ -2,6 +2,7 @@ import client.ServerFacade;
 import exception.ResponseException;
 import model.*;
 import org.junit.jupiter.api.*;
+import requestsresults.CreateResult;
 import server.Server;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +39,7 @@ public class ServerFacadeTests {
 
     @Test
     @DisplayName("Good register request")
+    @Order(1)
     public void goodRegister() throws ResponseException{
             AuthData authData = facade.register("testUser1", "SuperSecure", "test@test.test");
             assertNotNull(authData);
@@ -46,12 +48,59 @@ public class ServerFacadeTests {
 
     @Test
     @DisplayName("Bad register request")
+    @Order(2)
     public void badRegister(){
         try {
             AuthData authData = facade.register("NoPassword", null, "test@test.test");
             fail("Register should have thrown an error for null password");
         } catch (ResponseException e) {
             //yippee
+        }
+    }
+
+    @Test
+    @DisplayName("Good login request")
+    @Order(3)
+    public void goodLogin() throws ResponseException{
+        facade.register("testUser1", "SuperSecure", "test@test.test");
+        AuthData authData = facade.login("testUser1", "SuperSecure");
+        assertNotNull(authData);
+        assertTrue(authData.authToken().length() > 10);
+    }
+
+    @Test
+    @DisplayName("Bad login request")
+    @Order(4)
+    public void badLogin() {
+        try {
+            AuthData authData = facade.login("IDon't", "Exist");
+            fail("Login should've thrown an error");
+        } catch (ResponseException e) {
+            //wahoo
+        }
+    }
+
+    @Test
+    @DisplayName("Good create request")
+    @Order(5)
+    public void goodCreate() throws ResponseException {
+        AuthData authData = facade.register("testUser1", "SuperSecure", "test@test.test");
+        String authToken = authData.authToken();
+        CreateResult result = facade.create("testGame", authToken);
+        assertNotNull(result);
+        int createdID = result.gameID();
+        assertTrue(createdID > 0);
+    }
+
+    @Test
+    @DisplayName("Bad create request")
+    @Order(6)
+    public void badCreate() {
+        try {
+            facade.create("badGame", "fake");
+            fail("Create should've thrown an error");
+        } catch (ResponseException e) {
+            //huzzah
         }
     }
 

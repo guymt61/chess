@@ -1,5 +1,4 @@
 package service;
-import dataaccess.DataAccessException;
 import dataaccess.*;
 import exception.ResponseException;
 import model.AuthData;
@@ -7,7 +6,6 @@ import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 import requestsresults.*;
 
-import java.io.Console;
 import java.util.UUID;
 
 public class UserService {
