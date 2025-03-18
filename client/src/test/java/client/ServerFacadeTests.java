@@ -116,4 +116,23 @@ public class ServerFacadeTests {
         assertEquals(1, listResult.games().size());
     }
 
+    //@Test
+    //@DisplayName("Debug: are all requests correct")
+    public void checkRequests() throws ResponseException {
+        System.out.println("Join: /game, PUT");
+        try {facade.join(null, 0, null);} catch (ResponseException e){}
+        System.out.println("Login: /session, POST");
+        try {facade.login(null, null);} catch (ResponseException e){}
+        System.out.println("Register: /session, POST");
+        try {facade.register(null, null, null);} catch (ResponseException e){}
+        System.out.println("Clear: /db, DELETE");
+        try {facade.clear();} catch (ResponseException e){}
+        System.out.println("Logout: /session, DELETE");
+        try {facade.logout(null);} catch (ResponseException e){}
+        System.out.println("List: /game, GET");
+        try {facade.list(null);} catch (ResponseException e){}
+        System.out.println("Create: /game, POST");
+        try {facade.create(null, null);} catch (ResponseException e){}
+    }
+
 }

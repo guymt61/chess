@@ -41,8 +41,8 @@ public class ServerFacade {
 
     public ListResult list(String authToken) throws ResponseException {
         var path = "/game";
-        ListRequest request = new ListRequest(authToken);
-        return this.makeRequest("GET", path, request, authToken, ListResult.class);
+        //ListRequest request = new ListRequest(authToken);
+        return this.makeRequest("GET", path, null, authToken, ListResult.class);
     }
 
     public CreateResult create(String gameName, String authToken) throws ResponseException{
@@ -60,11 +60,12 @@ public class ServerFacade {
     private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws ResponseException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
+            System.out.println("Making request to " + url + " with method " + method);
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
-
             writeBody(request, http, authToken);
+            System.out.println();
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
