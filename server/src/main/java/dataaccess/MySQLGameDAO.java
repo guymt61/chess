@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
+
+import java.util.ArrayList;
 import java.util.HashSet;
 
 
@@ -92,8 +94,8 @@ INDEX(id)
     }
 
     //Produce a list of all GameData
-    public HashSet<GameData> listGames() {
-        HashSet<GameData> allGames = new HashSet<>();
+    public ArrayList<GameData> listGames() {
+        ArrayList<GameData> allGames = new ArrayList<>();
         try (var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT * FROM games";
             try (var ps = conn.prepareStatement(statement)) {

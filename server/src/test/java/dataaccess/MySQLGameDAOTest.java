@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -168,11 +169,11 @@ class MySQLGameDAOTest {
         gameDAO.createGame(gameData1);
         gameDAO.createGame(gameData2);
         gameDAO.createGame(gameData3);
-        HashSet<GameData> expectedGames = new HashSet<>();
+        ArrayList<GameData> expectedGames = new ArrayList<>();
         expectedGames.add(gameData1);
         expectedGames.add(gameData2);
         expectedGames.add(gameData3);
-        HashSet<GameData> allGames = gameDAO.listGames();
+        ArrayList<GameData> allGames = gameDAO.listGames();
         assertEquals(expectedGames, allGames);
     }
 
@@ -180,7 +181,7 @@ class MySQLGameDAOTest {
     @DisplayName("List with no games")
     void emptyListGames() {
         gameDAO.clear();
-        HashSet<GameData> foundGames = gameDAO.listGames();
+        ArrayList<GameData> foundGames = gameDAO.listGames();
         assertTrue(foundGames.isEmpty());
     }
 

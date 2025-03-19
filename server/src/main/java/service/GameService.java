@@ -8,6 +8,7 @@ import model.AuthData;
 import model.GameData;
 import requestsresults.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -33,7 +34,7 @@ public class GameService {
 
     public ListResult list(ListRequest listReq) throws ResponseException{
         verifyAuth(listReq.authToken());
-        HashSet<GameData> allGames = gameDAO.listGames();
+        ArrayList<GameData> allGames = gameDAO.listGames();
         return new ListResult(allGames);
     }
 

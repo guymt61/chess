@@ -1,6 +1,7 @@
 package dataaccess;
 import model.GameData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -29,8 +30,8 @@ public class MemoryGameDAO implements GameDAO {
         games.put(game.gameID(), game);
     }
 
-    public HashSet<GameData> listGames() {
-        return new HashSet<>(games.values());
+    public ArrayList<GameData> listGames() {
+        return new ArrayList<>(games.values());
     }
 
     private final HashMap<Integer, GameData> games;

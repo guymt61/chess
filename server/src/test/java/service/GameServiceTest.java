@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import model.*;
 import requestsresults.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,22 +33,22 @@ class GameServiceTest {
     @Test
     @DisplayName("List Of No Games")
     void listEmpty() throws ResponseException{
-        HashSet<GameData> emptySet = new HashSet<>();
+        ArrayList<GameData> emptySet = new ArrayList<>();
         assertNotNull(service.list(new ListRequest("token")));
-        HashSet<GameData> gamesList = service.list(new ListRequest("token")).games();
+        ArrayList<GameData> gamesList = service.list(new ListRequest("token")).games();
         assertEquals(emptySet, gamesList);
     }
 
     @Test
     @DisplayName("List Of Two Games")
     void listTwo() throws ResponseException {
-        HashSet<GameData> twoGameSet = new HashSet<>();
+        ArrayList<GameData> twoGameSet = new ArrayList<>();
         twoGameSet.add(testGame1);
         twoGameSet.add(testGame2);
         gameDAO.createGame(testGame1);
         gameDAO.createGame(testGame2);
         assertNotNull(service.list(new ListRequest("token")));
-        HashSet<GameData> gamesList = service.list(new ListRequest("token")).games();
+        ArrayList<GameData> gamesList = service.list(new ListRequest("token")).games();
         assertEquals(twoGameSet, gamesList);
     }
 
