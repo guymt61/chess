@@ -76,20 +76,21 @@ public class Server {
     }
 
     private Object logout(Request req, Response res) throws ResponseException{
-        LogoutRequest logoutRequest = new LogoutRequest(req.headers("Authorization"));
+        LogoutRequest logoutRequest = new LogoutRequest(req.headers("authorization"));
         LogoutResult logoutResult = userService.logout(logoutRequest);
         return new Gson().toJson(logoutResult);
     }
 
     private Object list(Request req, Response res) throws ResponseException {
-        ListRequest listRequest = new ListRequest(req.headers("Authorization"));
+        ListRequest listRequest = new ListRequest(req.headers("authorization"));
         ListResult listResult = gameService.list(listRequest);
-        return new Gson().toJson(listResult);
+        var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        return gson.toJson(listResult);
     }
 
     private Object create(Request req, Response res) throws ResponseException {
         CreateRequest nameOnly = new Gson().fromJson(req.body(), CreateRequest.class);
-        CreateRequest createRequest = new CreateRequest(req.headers("Authorization"), nameOnly.gameName());
+        CreateRequest createRequest = new CreateRequest(req.headers("authorization"), nameOnly.gameName());
         CreateResult createResult = gameService.create(createRequest);
         var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
         return gson.toJson(createResult);
@@ -97,7 +98,7 @@ public class Server {
 
     private Object join(Request req, Response res) throws ResponseException, DataAccessException {
         JoinRequest withoutAuth = new Gson().fromJson(req.body(), JoinRequest.class);
-        JoinRequest joinRequest = new JoinRequest(req.headers("Authorization"), withoutAuth.playerColor(), withoutAuth.gameID());
+        JoinRequest joinRequest = new JoinRequest(req.headers("authorization"), withoutAuth.playerColor(), withoutAuth.gameID());
         JoinResult joinResult = gameService.join(joinRequest);
         return new Gson().toJson(joinResult);
     }

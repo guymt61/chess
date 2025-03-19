@@ -116,6 +116,8 @@ public class ServerFacadeTests {
         assertEquals(1, listResult.games().size());
     }
 
+
+
     //@Test
     //@DisplayName("Debug: are all requests correct")
     public void checkRequests() throws ResponseException {

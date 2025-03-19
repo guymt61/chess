@@ -7,6 +7,7 @@ import requestsresults.*;
 
 import java.io.*;
 import java.net.*;
+import java.util.Base64;
 
 public class ServerFacade {
 
@@ -60,7 +61,6 @@ public class ServerFacade {
     private <T> T makeRequest(String method, String path, Object request, String authToken, Class<T> responseClass) throws ResponseException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
-            System.out.println("Making request to " + url + " with method " + method);
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
@@ -78,10 +78,11 @@ public class ServerFacade {
 
 
     private static void writeBody(Object request, HttpURLConnection http, String authToken) throws IOException {
+        if (authToken != null) {
+            //String basicAuth = new String(Base64.getEncoder().encode(authToken.getBytes()));
+            http.addRequestProperty("authorization", authToken);
+        }
         if (request != null) {
-            if (authToken != null) {
-                http.addRequestProperty("Authorization", authToken);
-            }
             http.addRequestProperty("Content-Type", "application/json");
             String reqData = new Gson().toJson(request);
             try (OutputStream reqBody = http.getOutputStream()) {
