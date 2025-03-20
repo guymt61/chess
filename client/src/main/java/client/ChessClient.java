@@ -246,12 +246,23 @@ public class ChessClient {
             case LOGGEDOUT -> "Thank you for using the chess client!";
             case LOGGEDIN -> logOut();
             case INGAME -> exitGame();
+            case OBSERVING -> exitObservation();
         };
     }
 
     public String exitGame() {
         String exitMessage = String.format("You have exited game %s. Thanks for playing!", activeGameName);
         //Add code to remove player from the game
+        activeGame = null;
+        activeGameName = null;
+        state = State.LOGGEDIN;
+        pov = null;
+        drawer = null;
+        return exitMessage;
+    }
+
+    public String exitObservation() {
+        String exitMessage = String.format("You are no longer observing game %s.", activeGameName);
         activeGame = null;
         activeGameName = null;
         state = State.LOGGEDIN;
@@ -267,8 +278,8 @@ public class ChessClient {
     }
 
     private void assertNotInGame() throws ResponseException {
-        if (state == State.INGAME) {
-            String message = "You cannot use this command while in game. Use help to list possible commands or quit to exit the game.";
+        if (state == State.INGAME || state == State.OBSERVING) {
+            String message = "You cannot use this command while playing or observing a game. Use help to list possible commands or quit to exit the game.";
             throw new ResponseException(413, message);
         }
     }
