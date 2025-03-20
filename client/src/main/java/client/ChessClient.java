@@ -39,7 +39,7 @@ public class ChessClient {
                 case "list" -> list();
                 case "join" -> join(params);
                 case "observe" -> observe(params);
-                case "quit" -> "Thank you for using the chess client!";
+                case "quit" -> quit();
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -66,10 +66,17 @@ public class ChessClient {
                     help - list possible commands
                     """;
         }
+        if (state == State.INGAME) {
+            return """
+                    quit - exit the current game
+                    help - list possible commands
+                    """;
+        }
         return null;
     }
 
     public String logIn(String... params) throws ResponseException {
+        assertNotInGame();
         if (params.length >= 2) {
             LoginResult result = server.login(params[0], params[1]);
             if (result != null) {
@@ -86,6 +93,7 @@ public class ChessClient {
     }
 
     public String register(String... params) throws ResponseException {
+        assertNotInGame();
         if (params.length >= 3) {
             String newUsername = params[0];
             String password = params[1];
@@ -106,6 +114,7 @@ public class ChessClient {
 
     public String logOut() throws ResponseException {
         assertLoggedIn();
+        assertNotInGame();
         server.logout(authToken);
         username = null;
         authToken = null;
@@ -115,6 +124,7 @@ public class ChessClient {
 
     public String create(String... params) throws ResponseException {
         assertLoggedIn();
+        assertNotInGame();
         if (params.length >= 1) {
             String gameName = params[0];
             server.create(gameName, authToken);
@@ -125,6 +135,7 @@ public class ChessClient {
 
     public String list() throws ResponseException {
         assertLoggedIn();
+        assertNotInGame();
         String output = "";
         ListResult listResult = server.list(authToken);
         ArrayList<GameData> allGames = listResult.games();
@@ -155,6 +166,7 @@ public class ChessClient {
 
     public String join(String... params) throws ResponseException {
         assertLoggedIn();
+        assertNotInGame();
         if (displayedIDConverter.isEmpty()) {
             throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
         }
@@ -190,6 +202,7 @@ public class ChessClient {
 
     public String observe(String... params) throws ResponseException {
         assertLoggedIn();
+        assertNotInGame();
         if (params.length >= 1) {
             int displayedID = Integer.parseInt(params[0]);
             int trueID = displayedIDConverter.get(displayedID);
@@ -224,9 +237,35 @@ public class ChessClient {
         return "";
     }
 
+    public String quit() throws ResponseException {
+        return switch (state) {
+            case LOGGEDOUT -> "Thank you for using the chess client!";
+            case LOGGEDIN -> logOut();
+            case INGAME -> exitGame();
+        };
+    }
+
+    public String exitGame() {
+        String exitMessage = String.format("You have exited game %s. Thanks for playing!", activeGameName);
+        //Add code to remove player from the game
+        activeGame = null;
+        activeGameName = null;
+        state = State.LOGGEDIN;
+        pov = null;
+        drawer = null;
+        return exitMessage;
+    }
+
     private void assertLoggedIn() throws ResponseException {
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(409, "You must be logged in to use this command. Please use logIn or register first.");
+        }
+    }
+
+    private void assertNotInGame() throws ResponseException {
+        if (state == State.INGAME) {
+            String message = "You cannot use this command while in game. Use help to list possible commands or quit to exit the game.";
+            throw new ResponseException(413, message);
         }
     }
 }
