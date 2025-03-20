@@ -12,6 +12,7 @@ public class ChessboardDrawer {
     private final static String DARK_BG = SET_BG_COLOR_DARK_GREY;
     private final static String lightFiller = LIGHT_BG  + EMPTY + RESET_BG_COLOR;
     private final static String darkFiller = DARK_BG + EMPTY + RESET_BG_COLOR;
+    private final static String whitePovColLabels = SET_TEXT_COLOR_BLUE + "    a   b   c  d   e  f   g   h" + RESET_TEXT_COLOR;
 
     public ChessboardDrawer(ChessGame game, ChessGame.TeamColor pointOfView) {
         this.game = game;
@@ -26,6 +27,8 @@ public class ChessboardDrawer {
     private String drawWhitePOV() {
         var output = new StringBuilder();
         output.append(RESET_TEXT_COLOR);
+        output.append(whitePovColLabels);
+        output.append("\n");
         //Work top down, from row 8 to row 1
         for (int i = 8; i > 0; i--) {
             if (isEven(i)) {
@@ -37,6 +40,7 @@ public class ChessboardDrawer {
                 darkPopulatedRow(output, i);
             }
         }
+        output.append(whitePovColLabels);
         return output.toString();
     }
 
@@ -97,6 +101,7 @@ public class ChessboardDrawer {
     }
 
     private void lightPopulatedRow(StringBuilder output, int row) {
+        addRowStartLabel(output, row);
         for (int j = 1; j <= 8; j++) {
             //Even columns dark, odd columns light
             ChessPosition position = new ChessPosition(row, j);
@@ -107,10 +112,12 @@ public class ChessboardDrawer {
                 output.append(pieceOnLight(board.getPiece(position)));
             }
         }
+        addRowEndLabel(output, row);
         output.append("\n");
     }
 
     private void darkPopulatedRow(StringBuilder output, int row) {
+        addRowStartLabel(output, row);
         for (int j = 1; j <= 8; j++) {
             //Even columns light, odd columns dark
             ChessPosition position = new ChessPosition(row, j);
@@ -121,7 +128,21 @@ public class ChessboardDrawer {
                 output.append(pieceOnDark(board.getPiece(position)));
             }
         }
+        addRowEndLabel(output, row);
         output.append("\n");
     }
 
+    private void addRowStartLabel(StringBuilder output, int row) {
+        output.append(SET_TEXT_COLOR_BLUE);
+        output.append(row);
+        output.append(RESET_TEXT_COLOR);
+        output.append("  ");
+    }
+
+    private void addRowEndLabel(StringBuilder output, int row) {
+        output.append(SET_TEXT_COLOR_BLUE);
+        output.append("  ");
+        output.append(row);
+        output.append(RESET_TEXT_COLOR);
+    }
 }
