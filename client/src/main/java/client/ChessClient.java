@@ -16,11 +16,13 @@ public class ChessClient {
     private String username;
     private HashMap<Integer, Integer> displayedIDConverter;
     private ChessGame activeGame;
+    private String activeGameName;
     private ChessGame.TeamColor pov;
+    private ChessboardDrawer drawer;
 
     public ChessClient(String serverurl) {
         server = new ServerFacade(serverurl);
-        state = State.SIGNEDOUT;
+        state = State.LOGGEDOUT;
     }
 
     public String eval(String input) {
@@ -29,11 +31,13 @@ public class ChessClient {
             var cmd = (tokens.length > 0) ? tokens[0] : "help";
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "signin" -> signIn(params);
+                case "signin" -> logIn(params);
                 case "register" -> register(params);
-                case "signOut" -> signOut();
+                case "signOut" -> logOut();
                 case "create" -> create(params);
                 case "list" -> list();
+                case "join" -> join(params);
+                case "observe" -> observe(params);
                 case "quit" -> "quit";
                 default -> help();
             };
@@ -43,7 +47,7 @@ public class ChessClient {
     }
 
     public String help() {
-        if (state == State.SIGNEDOUT) {
+        if (state == State.LOGGEDOUT) {
             return """
                     signIn <username> <password> - sign in to play as an existing user
                     register <username> <password> <email> - create a new user to play chess
@@ -51,7 +55,7 @@ public class ChessClient {
                     quit - exit the chess client
                     """;
         }
-        if (state == State.SIGNEDIN) {
+        if (state == State.LOGGEDIN) {
             return """
                     signOut - sign out of this user
                     create <name> - create a new chess game
@@ -64,14 +68,14 @@ public class ChessClient {
         return null;
     }
 
-    public String signIn(String... params) throws ResponseException {
+    public String logIn(String... params) throws ResponseException {
         if (params.length >= 2) {
             LoginResult result = server.login(params[0], params[1]);
             if (result != null) {
                 authToken = result.authToken();
                 username = result.username();
-                state = State.SIGNEDIN;
-                return String.format("Signed in as %s", username);
+                state = State.LOGGEDIN;
+                return String.format("Logged in as %s", username);
             }
             else {
                 throw new ResponseException(407, "Empty auth retrieved");
@@ -89,8 +93,8 @@ public class ChessClient {
             if (result != null) {
                 authToken = result.authToken();
                 username = newUsername;
-                state = State.SIGNEDIN;
-                return String.format("Registered and signed in as %s", username);
+                state = State.LOGGEDIN;
+                return String.format("Registered and logged in as %s", username);
             }
             else {
                 throw new ResponseException(407, "Register failed");
@@ -99,17 +103,17 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <username> <password> <email>");
     }
 
-    public String signOut() throws ResponseException {
-        assertSignedIn();
+    public String logOut() throws ResponseException {
+        assertLoggedIn();
         server.logout(authToken);
         username = null;
         authToken = null;
-        state = State.SIGNEDOUT;
-        return "You have been signed out.";
+        state = State.LOGGEDOUT;
+        return "You have been logged out.";
     }
 
     public String create(String... params) throws ResponseException {
-        assertSignedIn();
+        assertLoggedIn();
         if (params.length >= 1) {
             String gameName = params[0];
             server.create(gameName, authToken);
@@ -119,7 +123,7 @@ public class ChessClient {
     }
 
     public String list() throws ResponseException {
-        assertSignedIn();
+        assertLoggedIn();
         String output = "";
         ListResult listResult = server.list(authToken);
         ArrayList<GameData> allGames = listResult.games();
@@ -149,7 +153,7 @@ public class ChessClient {
     }
 
     public String join(String... params) throws ResponseException {
-        assertSignedIn();
+        assertLoggedIn();
         if (displayedIDConverter.isEmpty()) {
             throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
         }
@@ -159,8 +163,6 @@ public class ChessClient {
             String color = params[1];
             server.join(color, trueID, authToken);
             state = State.INGAME;
-            String rawString = "Successfully joined game controlling %s.%n";
-            String formatted = String.format(rawString, color);
             if (color.equals("BLACK")) {
                 pov = ChessGame.TeamColor.BLACK;
             }
@@ -171,10 +173,13 @@ public class ChessClient {
             for (GameData data : listResult.games()) {
                 if (data.gameID() == trueID) {
                     activeGame = data.game();
+                    activeGameName = data.gameName();
                     break;
                 }
             }
-            ChessboardDrawer drawer = new ChessboardDrawer(activeGame, pov);
+            String rawString = "Successfully joined game %s controlling %s.%n";
+            String formatted = String.format(rawString, activeGameName, color);
+            drawer = new ChessboardDrawer(activeGame, pov);
             return formatted + drawer.drawBoard();
         }
         else {
@@ -182,9 +187,32 @@ public class ChessClient {
         }
     }
 
-    private void assertSignedIn() throws ResponseException {
-        if (state == State.SIGNEDOUT) {
-            throw new ResponseException(409, "You must be signed in to use this command. Please use signIn or register first.");
+    public String observe(String... params) throws ResponseException {
+        assertLoggedIn();
+        if (params.length >= 1) {
+            int displayedID = Integer.parseInt(params[0]);
+            int trueID = displayedIDConverter.get(displayedID);
+            ListResult listResult = server.list(authToken);
+            for (GameData data : listResult.games()) {
+                if (data.gameID() == trueID) {
+                    activeGame = data.game();
+                    activeGameName = data.gameName();
+                    break;
+                }
+            }
+            String observingMessage = String.format("Now observing game %s.%n", activeGameName);
+            pov = ChessGame.TeamColor.WHITE;
+            drawer = new ChessboardDrawer(activeGame, pov);
+            return observingMessage + drawer.drawBoard();
+        }
+        else {
+            throw new ResponseException(407, "Expected: <id>");
+        }
+    }
+
+    private void assertLoggedIn() throws ResponseException {
+        if (state == State.LOGGEDOUT) {
+            throw new ResponseException(409, "You must be logged in to use this command. Please use logIn or register first.");
         }
     }
 }
