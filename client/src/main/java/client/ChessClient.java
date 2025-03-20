@@ -1,4 +1,5 @@
 package client;
+import chess.ChessGame;
 import exception.ResponseException;
 import model.*;
 import requestsresults.*;
@@ -14,6 +15,8 @@ public class ChessClient {
     private String authToken;
     private String username;
     private HashMap<Integer, Integer> displayedIDConverter;
+    private ChessGame activeGame;
+    private ChessGame.TeamColor pov;
 
     public ChessClient(String serverurl) {
         server = new ServerFacade(serverurl);
@@ -143,6 +146,40 @@ public class ChessClient {
             output += formatted;
         }
         return output;
+    }
+
+    public String join(String... params) throws ResponseException {
+        assertSignedIn();
+        if (displayedIDConverter.isEmpty()) {
+            throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
+        }
+        if (params.length >= 2) {
+            int displayedID = Integer.parseInt(params[0]);
+            int trueID = displayedIDConverter.get(displayedID);
+            String color = params[1];
+            server.join(color, trueID, authToken);
+            state = State.INGAME;
+            String rawString = "Successfully joined game controlling %s.%n";
+            String formatted = String.format(rawString, color);
+            if (color.equals("BLACK")) {
+                pov = ChessGame.TeamColor.BLACK;
+            }
+            else {
+                pov = ChessGame.TeamColor.WHITE;
+            }
+            ListResult listResult = server.list(authToken);
+            for (GameData data : listResult.games()) {
+                if (data.gameID() == trueID) {
+                    activeGame = data.game();
+                    break;
+                }
+            }
+            ChessboardDrawer drawer = new ChessboardDrawer(activeGame, pov);
+            return formatted + drawer.drawBoard();
+        }
+        else {
+            throw new ResponseException(407, "Expected: <id> [WHITE|BLACK]");
+        }
     }
 
     private void assertSignedIn() throws ResponseException {

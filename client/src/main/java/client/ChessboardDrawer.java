@@ -11,5 +11,7 @@ public class ChessboardDrawer {
         perspective = pointOfView;
     }
 
-    public void drawBoard() {}
+    public String drawBoard() {
+        return "I'm a chess board!";
+    }
 }
