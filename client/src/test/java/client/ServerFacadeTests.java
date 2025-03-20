@@ -116,25 +116,94 @@ public class ServerFacadeTests {
         assertEquals(1, listResult.games().size());
     }
 
-
-
-    //@Test
-    //@DisplayName("Debug: are all requests correct")
-    public void checkRequests() throws ResponseException {
-        System.out.println("Join: /game, PUT");
-        try {facade.join(null, 0, null);} catch (ResponseException e){}
-        System.out.println("Login: /session, POST");
-        try {facade.login(null, null);} catch (ResponseException e){}
-        System.out.println("Register: /session, POST");
-        try {facade.register(null, null, null);} catch (ResponseException e){}
-        System.out.println("Clear: /db, DELETE");
-        try {facade.clear();} catch (ResponseException e){}
-        System.out.println("Logout: /session, DELETE");
-        try {facade.logout(null);} catch (ResponseException e){}
-        System.out.println("List: /game, GET");
-        try {facade.list(null);} catch (ResponseException e){}
-        System.out.println("Create: /game, POST");
-        try {facade.create(null, null);} catch (ResponseException e){}
+    @Test
+    @DisplayName("Bad list request")
+    @Order(8)
+    public void badList() {
+        try {
+            facade.list("fakeToken");
+            fail("List should've thrown an error");
+        } catch (ResponseException e) {
+            //Success!
+        }
     }
 
+    @Test
+    @DisplayName("Good join request")
+    @Order(9)
+    public void goodJoin() throws ResponseException {
+        RegisterResult registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
+        CreateResult createResult = facade.create("testGame", authToken);
+        int ID = createResult.gameID();
+        facade.join("WHITE", ID, authToken);
+        GameData gameData = facade.list(authToken).games().get(0);
+        assertEquals("testGame", gameData.gameName());
+        assertEquals("testUser", gameData.whiteUsername());
+    }
+
+    @Test
+    @DisplayName("Bad join request")
+    @Order(10)
+    public void badJoin() throws ResponseException{
+        RegisterResult registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
+        CreateResult createResult = facade.create("testGame", authToken);
+        int realGameID = createResult.gameID();
+        try {
+            facade.join("WHITE", realGameID, "fakeToken");
+            fail("Join should've thrown an Unauthorized error");
+        } catch (ResponseException e) {
+            //Good so far
+        }
+        try {
+            facade.join("INDIGO", realGameID, authToken);
+            fail("Join should've thrown a Bad Request error");
+        } catch (ResponseException e) {
+            GameData gameData = facade.list(authToken).games().get(0);
+            assertNull(gameData.whiteUsername());
+        }
+    }
+
+    @Test
+    @DisplayName("Good logout request")
+    @Order(11)
+    public void goodLogout() throws ResponseException{
+        RegisterResult registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
+        facade.logout(authToken);
+        try {
+            facade.list(authToken);
+            fail("List after logout should've thrown an Unauthorized error");
+        } catch (ResponseException e) {
+            //Logout successful
+        }
+    }
+
+    @Test
+    @DisplayName("Bad logout request")
+    @Order(12)
+    public void badLogout() {
+        try {
+            facade.logout("fakeToken");
+            fail("Logout with fake token should've thrown an error");
+        } catch (ResponseException e) {
+            //fantastic
+        }
+    }
+
+    @Test
+    @DisplayName("Clear")
+    @Order(13)
+    public void clear() throws ResponseException {
+        RegisterResult registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
+        String authToken = registerResult.authToken();
+        facade.create("testGame", authToken);
+        facade.clear();
+        registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
+        authToken = registerResult.authToken();
+        ListResult listResult = facade.list(authToken);
+        assertEquals(0, listResult.games().size());
+        facade.clear();
+    }
 }
