@@ -25,6 +25,7 @@ public class ChessClient {
             return switch (cmd) {
                 case "signin" -> signIn(params);
                 case "register" -> register(params);
+                case "signOut" -> signOut();
                 //case "list" -> listPets();
                 //case "signout" -> null;
                 case "quit" -> "quit";
@@ -90,5 +91,30 @@ public class ChessClient {
             }
         }
         throw new ResponseException(400, "Expected: <username> <password> <email>");
+    }
+
+    public String signOut() throws ResponseException {
+        assertSignedIn();
+        server.logout(authToken);
+        username = null;
+        authToken = null;
+        state = State.SIGNEDOUT;
+        return "You have been signed out.";
+    }
+
+    public String create(String... params) throws ResponseException {
+        assertSignedIn();
+        if (params.length >= 1) {
+            String gameName = params[0];
+            server.create(gameName, authToken);
+            return String.format("New chess game created named '%s'", gameName);
+        }
+        throw new ResponseException(407, "Expected: <name>");
+    }
+
+    private void assertSignedIn() throws ResponseException {
+        if (state == State.SIGNEDOUT) {
+            throw new ResponseException(409, "You must be signed in to use this command. Please use signIn or register first.");
+        }
     }
 }
