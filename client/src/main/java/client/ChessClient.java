@@ -24,7 +24,7 @@ public class ChessClient {
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
                 case "signin" -> signIn(params);
-                //case "rescue" -> rescuePet(params);
+                case "register" -> register(params);
                 //case "list" -> listPets();
                 //case "signout" -> null;
                 case "quit" -> "quit";
@@ -71,5 +71,24 @@ public class ChessClient {
             }
         }
         throw new ResponseException(400, "Expected: <username> <password>");
+    }
+
+    public String register(String... params) throws ResponseException {
+        if (params.length >= 3) {
+            String newUsername = params[0];
+            String password = params[1];
+            String email = params[2];
+            RegisterResult result = server.register(newUsername, password, email);
+            if (result != null) {
+                authToken = result.authToken();
+                username = newUsername;
+                state = State.SIGNEDIN;
+                return String.format("Registered and signed in as %s", username);
+            }
+            else {
+                throw new ResponseException(407, "Register failed");
+            }
+        }
+        throw new ResponseException(400, "Expected: <username> <password> <email>");
     }
 }
