@@ -10,10 +10,10 @@ public class ChessboardDrawer {
 
     private final static String LIGHT_BG = setColor(false, 214, 181, 73);
     private final static String DARK_BG = setColor(false, 191, 6, 6);
-    private final static String lightFiller = LIGHT_BG  + EMPTY + RESET_BG_COLOR;
-    private final static String darkFiller = DARK_BG + EMPTY + RESET_BG_COLOR;
-    private final static String whitePovColLabels = SET_TEXT_COLOR_BLUE + "    a   b   c  d   e  f   g   h" + RESET_TEXT_COLOR;
-    private final static String blackPovColLabels = SET_TEXT_COLOR_BLUE + "    h   g   f  e   d  c   b   a" + RESET_TEXT_COLOR;
+    private final static String LIGHT_FILLER = LIGHT_BG  + EMPTY + RESET_BG_COLOR;
+    private final static String DARK_FILLER = DARK_BG + EMPTY + RESET_BG_COLOR;
+    private final static String WHITE_COLUMN_LABELS = SET_TEXT_COLOR_BLUE + "    a   b   c  d   e  f   g   h" + RESET_TEXT_COLOR;
+    private final static String BLACK_COLUMN_LABELS = SET_TEXT_COLOR_BLUE + "    h   g   f  e   d  c   b   a" + RESET_TEXT_COLOR;
 
     public ChessboardDrawer(ChessGame game, ChessGame.TeamColor pointOfView) {
         this.game = game;
@@ -31,7 +31,7 @@ public class ChessboardDrawer {
     private String drawWhitePOV() {
         var output = new StringBuilder();
         output.append(RESET_TEXT_COLOR);
-        output.append(whitePovColLabels);
+        output.append(WHITE_COLUMN_LABELS);
         output.append("\n");
         //Work top down, from row 8 to row 1
         for (int i = 8; i > 0; i--) {
@@ -44,13 +44,13 @@ public class ChessboardDrawer {
                 darkPopulatedRow(output, i);
             }
         }
-        output.append(whitePovColLabels);
+        output.append(WHITE_COLUMN_LABELS);
         return output.toString();
     }
 
     private String drawBlackPOV() {
         var output = new StringBuilder();
-        output.append(blackPovColLabels);
+        output.append(BLACK_COLUMN_LABELS);
         output.append("\n");
         //Top is 1, bottom is 8
         for (int i = 1; i <= 8; i++) {
@@ -63,23 +63,13 @@ public class ChessboardDrawer {
                 lightPopulatedRowBackwards(output, i);
             }
         }
-        output.append(blackPovColLabels);
+        output.append(BLACK_COLUMN_LABELS);
         return output.toString();
-    }
-
-    private String lightEmptyRow() {
-        String pair = lightFiller + darkFiller;
-        return pair + pair + pair + pair;
-    }
-
-    private String darkEmptyRow() {
-        String pair = darkFiller + lightFiller;
-        return pair + pair + pair + pair;
     }
 
     private String pieceOnLight(ChessPiece piece) {
         if (piece == null) {
-            return lightFiller;
+            return LIGHT_FILLER;
         }
         String pieceIcon = getPieceIcon(piece);
         return LIGHT_BG + pieceIcon + RESET_BG_COLOR;
@@ -88,7 +78,7 @@ public class ChessboardDrawer {
 
     private String pieceOnDark(ChessPiece piece) {
         if (piece == null) {
-            return darkFiller;
+            return DARK_FILLER;
         }
         String pieceIcon = getPieceIcon(piece);
         return DARK_BG + pieceIcon + RESET_BG_COLOR;

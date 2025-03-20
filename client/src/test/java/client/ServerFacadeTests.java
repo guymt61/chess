@@ -135,8 +135,8 @@ public class ServerFacadeTests {
         RegisterResult registerResult = facade.register("testUser", "SuperSecure", "test@test.test");
         String authToken = registerResult.authToken();
         CreateResult createResult = facade.create("testGame", authToken);
-        int ID = createResult.gameID();
-        facade.join("WHITE", ID, authToken);
+        int createdID = createResult.gameID();
+        facade.join("WHITE", createdID, authToken);
         GameData gameData = facade.list(authToken).games().get(0);
         assertEquals("testGame", gameData.gameName());
         assertEquals("testUser", gameData.whiteUsername());

@@ -279,8 +279,9 @@ public class ChessClient {
 
     private void assertNotInGame() throws ResponseException {
         if (state == State.INGAME || state == State.OBSERVING) {
-            String message = "You cannot use this command while playing or observing a game. Use help to list possible commands or quit to exit the game.";
-            throw new ResponseException(413, message);
+            String messageLine1 = "You cannot use this command while playing or observing a game.\n";
+            String messageLine2 = "Use help to list possible commands or quit to exit the game.";
+            throw new ResponseException(413, messageLine1 + messageLine2);
         }
     }
 }
