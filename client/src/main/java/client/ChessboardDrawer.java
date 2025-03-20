@@ -8,8 +8,8 @@ public class ChessboardDrawer {
     private final ChessGame.TeamColor perspective;
     private final ChessBoard board;
 
-    private final static String LIGHT_BG = SET_BG_COLOR_LIGHT_GREY;
-    private final static String DARK_BG = SET_BG_COLOR_DARK_GREY;
+    private final static String LIGHT_BG = setColor(false, 214, 181, 73);
+    private final static String DARK_BG = setColor(false, 191, 6, 6);
     private final static String lightFiller = LIGHT_BG  + EMPTY + RESET_BG_COLOR;
     private final static String darkFiller = DARK_BG + EMPTY + RESET_BG_COLOR;
     private final static String whitePovColLabels = SET_TEXT_COLOR_BLUE + "    a   b   c  d   e  f   g   h" + RESET_TEXT_COLOR;
@@ -74,25 +74,19 @@ public class ChessboardDrawer {
     private String getPieceIcon(ChessPiece piece) {
         String pieceIcon;
         if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            pieceIcon = switch (piece.getPieceType()) {
-                case PAWN -> WHITE_PAWN;
-                case ROOK -> WHITE_ROOK;
-                case KING -> WHITE_KING;
-                case BISHOP -> WHITE_BISHOP;
-                case KNIGHT -> WHITE_KNIGHT;
-                case QUEEN -> WHITE_QUEEN;
-            };
+            pieceIcon = SET_TEXT_COLOR_WHITE;
         }
         else {
-            pieceIcon = switch (piece.getPieceType()) {
-                case PAWN -> BLACK_PAWN;
-                case QUEEN -> BLACK_QUEEN;
-                case KNIGHT -> BLACK_KNIGHT;
-                case BISHOP -> BLACK_BISHOP;
-                case KING -> BLACK_KING;
-                case ROOK -> BLACK_ROOK;
-            };
+            pieceIcon = SET_TEXT_COLOR_BLACK;
         }
+        pieceIcon += switch (piece.getPieceType()) {
+                case PAWN -> BLACK_PAWN;
+                case ROOK -> BLACK_ROOK;
+                case KING -> BLACK_KING;
+                case BISHOP -> BLACK_BISHOP;
+                case KNIGHT -> BLACK_KNIGHT;
+                case QUEEN -> BLACK_QUEEN;
+        };
         return pieceIcon;
     }
 
@@ -144,5 +138,21 @@ public class ChessboardDrawer {
         output.append("  ");
         output.append(row);
         output.append(RESET_TEXT_COLOR);
+    }
+
+    /**
+     * Creates an escape sequence string that, if printed, should set the console text or background to any RGB color
+     *
+     * @param text  true if setting text color, false if setting background color
+     * @param red   amount of red 0-255
+     * @param green amount of green 0-255
+     * @param blue  amount of blue 0-255
+     * @return an escape sequence string that would set the console text or background to the specified color
+     */
+    private static String setColor(boolean text, int red, int green, int blue) {
+        if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255) {
+            throw new IllegalArgumentException("Colors must be between 0 - 255");
+        }
+        return String.format("\u001B[%s8;2;%d;%d;%dm", (text) ? "3" : "4", red, green, blue);
     }
 }
