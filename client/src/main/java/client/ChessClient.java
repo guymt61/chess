@@ -7,6 +7,7 @@ import requestsresults.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 
 public class ChessClient {
 
@@ -27,29 +28,29 @@ public class ChessClient {
 
     public String eval(String input) {
         try {
-            var tokens = input.toLowerCase().split(" ");
+            var tokens = input.split(" ");
             var cmd = (tokens.length > 0) ? tokens[0] : "help";
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "signin" -> logIn(params);
+            return switch (cmd.toLowerCase()) {
+                case "login" -> logIn(params);
                 case "register" -> register(params);
-                case "signOut" -> logOut();
+                case "logout" -> logOut();
                 case "create" -> create(params);
                 case "list" -> list();
                 case "join" -> join(params);
                 case "observe" -> observe(params);
-                case "quit" -> "quit";
+                case "quit" -> "Thank you for using the chess client!";
                 default -> help();
             };
         } catch (ResponseException ex) {
-            return ex.getMessage();
+            return SET_TEXT_COLOR_RED + ex.getMessage();
         }
     }
 
     public String help() {
         if (state == State.LOGGEDOUT) {
             return """
-                    signIn <username> <password> - sign in to play as an existing user
+                    logIn <username> <password> - log in to play as an existing user
                     register <username> <password> <email> - create a new user to play chess
                     help - list commands
                     quit - exit the chess client
@@ -57,7 +58,7 @@ public class ChessClient {
         }
         if (state == State.LOGGEDIN) {
             return """
-                    signOut - sign out of this user
+                    logOut - log out of this user
                     create <name> - create a new chess game
                     list - list all active chess games
                     join <id> [WHITE|BLACK] - join a chess game
@@ -160,7 +161,7 @@ public class ChessClient {
         if (params.length >= 2) {
             int displayedID = Integer.parseInt(params[0]);
             int trueID = displayedIDConverter.get(displayedID);
-            String color = params[1];
+            String color = params[1].toUpperCase();
             server.join(color, trueID, authToken);
             state = State.INGAME;
             if (color.equals("BLACK")) {
