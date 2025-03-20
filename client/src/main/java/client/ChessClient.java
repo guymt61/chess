@@ -171,29 +171,33 @@ public class ChessClient {
             throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
         }
         if (params.length >= 2) {
-            int displayedID = Integer.parseInt(params[0]);
-            int trueID = displayedIDConverter.get(displayedID);
-            String color = params[1].toUpperCase();
-            server.join(color, trueID, authToken);
-            state = State.INGAME;
-            if (color.equals("BLACK")) {
-                pov = ChessGame.TeamColor.BLACK;
-            }
-            else {
-                pov = ChessGame.TeamColor.WHITE;
-            }
-            ListResult listResult = server.list(authToken);
-            for (GameData data : listResult.games()) {
-                if (data.gameID() == trueID) {
-                    activeGame = data.game();
-                    activeGameName = data.gameName();
-                    break;
+            try {
+                int displayedID = Integer.parseInt(params[0]);
+                int trueID = displayedIDConverter.get(displayedID);
+                String color = params[1].toUpperCase();
+                server.join(color, trueID, authToken);
+                state = State.INGAME;
+                if (color.equals("BLACK")) {
+                    pov = ChessGame.TeamColor.BLACK;
                 }
+                else {
+                    pov = ChessGame.TeamColor.WHITE;
+                }
+                ListResult listResult = server.list(authToken);
+                for (GameData data : listResult.games()) {
+                    if (data.gameID() == trueID) {
+                        activeGame = data.game();
+                        activeGameName = data.gameName();
+                        break;
+                    }
+                }
+                String rawString = "Successfully joined game %s controlling %s.%n";
+                String formatted = String.format(rawString, activeGameName, color);
+                drawer = new ChessboardDrawer(activeGame, pov);
+                return formatted + drawer.drawBoard();
+            } catch (NumberFormatException e) {
+                throw new ResponseException(415, "Error: id must be supplied as an integer");
             }
-            String rawString = "Successfully joined game %s controlling %s.%n";
-            String formatted = String.format(rawString, activeGameName, color);
-            drawer = new ChessboardDrawer(activeGame, pov);
-            return formatted + drawer.drawBoard();
         }
         else {
             throw new ResponseException(407, "Expected: <id> [WHITE|BLACK]");
