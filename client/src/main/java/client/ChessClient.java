@@ -3,7 +3,9 @@ import exception.ResponseException;
 import model.*;
 import requestsresults.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class ChessClient {
 
@@ -11,6 +13,7 @@ public class ChessClient {
     private final ServerFacade server;
     private String authToken;
     private String username;
+    private HashMap<Integer, Integer> displayedIDConverter;
 
     public ChessClient(String serverurl) {
         server = new ServerFacade(serverurl);
@@ -26,8 +29,8 @@ public class ChessClient {
                 case "signin" -> signIn(params);
                 case "register" -> register(params);
                 case "signOut" -> signOut();
-                //case "list" -> listPets();
-                //case "signout" -> null;
+                case "create" -> create(params);
+                case "list" -> list();
                 case "quit" -> "quit";
                 default -> help();
             };
@@ -110,6 +113,36 @@ public class ChessClient {
             return String.format("New chess game created named '%s'", gameName);
         }
         throw new ResponseException(407, "Expected: <name>");
+    }
+
+    public String list() throws ResponseException {
+        assertSignedIn();
+        String output = "";
+        ListResult listResult = server.list(authToken);
+        ArrayList<GameData> allGames = listResult.games();
+        displayedIDConverter = new HashMap<>();
+        for (int i = 0; i < allGames.size(); i++) {
+            GameData game = allGames.get(i);
+            displayedIDConverter.put(i+1, game.gameID());
+            String white;
+            String black;
+            if (game.whiteUsername() == null) {
+                white = "no one";
+            }
+            else {
+                white = game.whiteUsername();
+            }
+            if (game.blackUsername() == null) {
+                black = "no one";
+            }
+            else {
+                black = game.blackUsername();
+            }
+            String rawString = "%d: '%s' with white controlled by %s and black controlled by %s.%n";
+            String formatted = String.format(rawString, i+1, game.gameName(), white, black);
+            output += formatted;
+        }
+        return output;
     }
 
     private void assertSignedIn() throws ResponseException {
