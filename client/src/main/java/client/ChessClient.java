@@ -210,6 +210,19 @@ public class ChessClient {
         }
     }
 
+    public String statusDisplay() {
+        if (state == State.LOGGEDOUT) {
+            return "LOGGED_OUT";
+        }
+        if (state == State.LOGGEDIN) {
+            return username;
+        }
+        if (state == State.INGAME) {
+            return activeGameName;
+        }
+        return "";
+    }
+
     private void assertLoggedIn() throws ResponseException {
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(409, "You must be logged in to use this command. Please use logIn or register first.");
