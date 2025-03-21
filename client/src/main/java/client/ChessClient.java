@@ -77,7 +77,7 @@ public class ChessClient {
 
     public String logIn(String... params) throws ResponseException {
         assertNotInGame();
-        if (params.length >= 2) {
+        if (params.length == 2) {
             LoginResult result = server.login(params[0], params[1]);
             if (result != null) {
                 authToken = result.authToken();
@@ -94,7 +94,7 @@ public class ChessClient {
 
     public String register(String... params) throws ResponseException {
         assertNotInGame();
-        if (params.length >= 3) {
+        if (params.length == 3) {
             String newUsername = params[0];
             String password = params[1];
             String email = params[2];
@@ -125,7 +125,7 @@ public class ChessClient {
     public String create(String... params) throws ResponseException {
         assertLoggedIn();
         assertNotInGame();
-        if (params.length >= 1) {
+        if (params.length == 1) {
             String gameName = params[0];
             server.create(gameName, authToken);
             return String.format("New chess game created named '%s'", gameName);
@@ -170,7 +170,7 @@ public class ChessClient {
         if (displayedIDConverter.isEmpty()) {
             throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
         }
-        if (params.length >= 2) {
+        if (params.length == 2) {
             try {
                 int displayedID = Integer.parseInt(params[0]);
                 int trueID = displayedIDConverter.get(displayedID);
@@ -207,7 +207,7 @@ public class ChessClient {
     public String observe(String... params) throws ResponseException {
         assertLoggedIn();
         assertNotInGame();
-        if (params.length >= 1) {
+        if (params.length == 1) {
             int displayedID = Integer.parseInt(params[0]);
             int trueID = displayedIDConverter.get(displayedID);
             ListResult listResult = server.list(authToken);
@@ -237,6 +237,9 @@ public class ChessClient {
             return username;
         }
         if (state == State.INGAME) {
+            return activeGameName;
+        }
+        if (state == State.OBSERVING) {
             return activeGameName;
         }
         return "";
