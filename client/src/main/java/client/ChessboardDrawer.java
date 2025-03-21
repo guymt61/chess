@@ -56,11 +56,11 @@ public class ChessboardDrawer {
         for (int i = 1; i <= 8; i++) {
             if (isEven(i)) {
                 //Dark first
-                darkPopulatedRowBackwards(output, i);
+                darkPopulatedRow(output, i);
             }
             else {
                 //Light first
-                lightPopulatedRowBackwards(output, i);
+                lightPopulatedRow(output, i);
             }
         }
         output.append(BLACK_COLUMN_LABELS);
@@ -109,23 +109,17 @@ public class ChessboardDrawer {
 
     private void lightPopulatedRow(StringBuilder output, int row) {
         addRowStartLabel(output, row);
-        for (int j = 1; j <= 8; j++) {
-            //Even columns dark, odd columns light
-            ChessPosition position = new ChessPosition(row, j);
-            if (isEven(j)) {
-                output.append(pieceOnDark(board.getPiece(position)));
-            }
-            else {
-                output.append(pieceOnLight(board.getPiece(position)));
-            }
+        int j;
+        int jIterator;
+        if (perspective == ChessGame.TeamColor.WHITE) {
+            j = 1;
+            jIterator = 1;
         }
-        addRowEndLabel(output, row);
-        output.append("\n");
-    }
-
-    private void lightPopulatedRowBackwards(StringBuilder output, int row) {
-        addRowStartLabel(output, row);
-        for (int j = 8; j >= 1; j--) {
+        else {
+            j = 8;
+            jIterator = -1;
+        }
+        while ( j >= 1 && j <= 8) {
             //Even columns dark, odd columns light
             ChessPosition position = new ChessPosition(row, j);
             if (isEven(j)) {
@@ -134,6 +128,7 @@ public class ChessboardDrawer {
             else {
                 output.append(pieceOnLight(board.getPiece(position)));
             }
+            j += jIterator;
         }
         addRowEndLabel(output, row);
         output.append("\n");
@@ -141,23 +136,17 @@ public class ChessboardDrawer {
 
     private void darkPopulatedRow(StringBuilder output, int row) {
         addRowStartLabel(output, row);
-        for (int j = 1; j <= 8; j++) {
-            //Even columns light, odd columns dark
-            ChessPosition position = new ChessPosition(row, j);
-            if (isEven(j)) {
-                output.append(pieceOnLight(board.getPiece(position)));
-            }
-            else {
-                output.append(pieceOnDark(board.getPiece(position)));
-            }
+        int j;
+        int jIterator;
+        if (perspective == ChessGame.TeamColor.WHITE) {
+            j = 1;
+            jIterator = 1;
         }
-        addRowEndLabel(output, row);
-        output.append("\n");
-    }
-
-    private void darkPopulatedRowBackwards(StringBuilder output, int row) {
-        addRowStartLabel(output, row);
-        for (int j = 8; j >= 1; j--) {
+        else {
+            j = 8;
+            jIterator = -1;
+        }
+        while ( j >= 1 && j <= 8) {
             //Even columns light, odd columns dark
             ChessPosition position = new ChessPosition(row, j);
             if (isEven(j)) {
@@ -166,6 +155,7 @@ public class ChessboardDrawer {
             else {
                 output.append(pieceOnDark(board.getPiece(position)));
             }
+            j += jIterator;
         }
         addRowEndLabel(output, row);
         output.append("\n");

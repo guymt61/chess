@@ -221,6 +221,7 @@ public class ChessClient {
             String observingMessage = String.format("Now observing game %s.%n", activeGameName);
             pov = ChessGame.TeamColor.WHITE;
             drawer = new ChessboardDrawer(activeGame, pov);
+            state = State.OBSERVING;
             return observingMessage + drawer.drawBoard();
         }
         else {
