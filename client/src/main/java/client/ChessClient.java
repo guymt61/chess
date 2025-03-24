@@ -34,9 +34,9 @@ public class ChessClient {
             return switch (cmd.toLowerCase()) {
                 case "login" -> logIn(params);
                 case "register" -> register(params);
-                case "logout" -> logOut();
+                case "logout" -> logOut(params);
                 case "create" -> create(params);
-                case "list" -> list();
+                case "list" -> list(params);
                 case "join" -> join(params);
                 case "observe" -> observe(params);
                 case "quit" -> quit();
@@ -112,9 +112,12 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <username> <password> <email>");
     }
 
-    public String logOut() throws ResponseException {
+    public String logOut(String... params) throws ResponseException {
         assertLoggedIn();
         assertNotInGame();
+        if (params.length != 0) {
+            throw new ResponseException(407, "Expected no parameters for logOut");
+        }
         server.logout(authToken);
         username = null;
         authToken = null;
@@ -133,9 +136,12 @@ public class ChessClient {
         throw new ResponseException(407, "Expected: <name>");
     }
 
-    public String list() throws ResponseException {
+    public String list(String... params) throws ResponseException {
         assertLoggedIn();
         assertNotInGame();
+        if (params.length != 0) {
+            throw new ResponseException(407, "Expected no parameters for list");
+        }
         String output = "";
         ListResult listResult = server.list(authToken);
         ArrayList<GameData> allGames = listResult.games();
@@ -167,12 +173,18 @@ public class ChessClient {
     public String join(String... params) throws ResponseException {
         assertLoggedIn();
         assertNotInGame();
+        if (displayedIDConverter == null) {
+            throw new ResponseException(411, "Error: Please call list to list the games available to join first.");
+        }
         if (displayedIDConverter.isEmpty()) {
-            throw new ResponseException(411, "Error: There are either no active games to join, or you have not listed games");
+            throw new ResponseException(411, "Error: There are active games to join");
         }
         if (params.length == 2) {
             try {
                 int displayedID = Integer.parseInt(params[0]);
+                if (displayedIDConverter.get(displayedID) == null) {
+                    throw new ResponseException(410, "Error: Invalid id");
+                }
                 int trueID = displayedIDConverter.get(displayedID);
                 String color = params[1].toUpperCase();
                 server.join(color, trueID, authToken);
@@ -208,15 +220,22 @@ public class ChessClient {
         assertLoggedIn();
         assertNotInGame();
         if (params.length == 1) {
-            int displayedID = Integer.parseInt(params[0]);
-            int trueID = displayedIDConverter.get(displayedID);
-            ListResult listResult = server.list(authToken);
-            for (GameData data : listResult.games()) {
-                if (data.gameID() == trueID) {
-                    activeGame = data.game();
-                    activeGameName = data.gameName();
-                    break;
+            try {
+                int displayedID = Integer.parseInt(params[0]);
+                if (displayedIDConverter.get(displayedID) == null) {
+                    throw new ResponseException(410, "Error: Invalid id");
                 }
+                int trueID = displayedIDConverter.get(displayedID);
+                ListResult listResult = server.list(authToken);
+                for (GameData data : listResult.games()) {
+                    if (data.gameID() == trueID) {
+                        activeGame = data.game();
+                        activeGameName = data.gameName();
+                        break;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                throw new ResponseException(415, "Error: id must be supplied as an integer");
             }
             String observingMessage = String.format("Now observing game %s.%n", activeGameName);
             pov = ChessGame.TeamColor.WHITE;
