@@ -56,11 +56,11 @@ public class ChessboardDrawer {
         for (int i = 1; i <= 8; i++) {
             if (isEven(i)) {
                 //Dark first
-                darkPopulatedRow(output, i);
+                lightPopulatedRow(output, i);
             }
             else {
                 //Light first
-                lightPopulatedRow(output, i);
+                darkPopulatedRow(output, i);
             }
         }
         output.append(BLACK_COLUMN_LABELS);
