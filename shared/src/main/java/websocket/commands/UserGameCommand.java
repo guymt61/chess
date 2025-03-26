@@ -1,10 +1,10 @@
 package websocket.commands;
 
 import java.util.Objects;
+import chess.ChessMove;
 
 /**
  * Represents a command a user can send the server over a websocket
- *
  * Note: You can add to this class, but you should not alter the existing
  * methods.
  */
@@ -15,6 +15,8 @@ public class UserGameCommand {
     private final String authToken;
 
     private final Integer gameID;
+
+    private ChessMove move;
 
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
@@ -27,6 +29,22 @@ public class UserGameCommand {
         MAKE_MOVE,
         LEAVE,
         RESIGN
+    }
+
+    public void setMove(ChessMove move) {
+        if(commandType != CommandType.MAKE_MOVE) {
+            String warningMessage = String.format("WARNING: Unexpected move added to %s UserGameCommand", commandType);
+            System.out.println(warningMessage);
+        }
+        this.move = move;
+    }
+
+    public ChessMove getMove() {
+        if(commandType != CommandType.MAKE_MOVE) {
+            String warningMessage = String.format("WARNING: Unexpected move retrieved from %s UserGameCommand", commandType);
+            System.out.println(warningMessage);
+        }
+        return move;
     }
 
     public CommandType getCommandType() {
