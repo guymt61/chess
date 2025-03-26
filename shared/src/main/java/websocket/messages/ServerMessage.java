@@ -10,6 +10,7 @@ import java.util.Objects;
  */
 public class ServerMessage {
     ServerMessageType serverMessageType;
+    private String message;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -23,6 +24,20 @@ public class ServerMessage {
 
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
+    }
+
+    public void setMessage(String message) {
+        if (serverMessageType == ServerMessageType.LOAD_GAME) {
+            System.out.println("WARNING: unexpected message added to a LOAD_GAME notification");
+        }
+        this.message = message;
+    }
+
+    public String getMessage() {
+        if (serverMessageType == ServerMessageType.LOAD_GAME) {
+            System.out.println("WARNING: unexpected message retrieved from a LOAD_GAME notification");
+        }
+        return message;
     }
 
     @Override
