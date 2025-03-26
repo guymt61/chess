@@ -1,5 +1,7 @@
 package client;
 import chess.ChessGame;
+import client.websocket.NotificationHandler;
+import client.websocket.WebSocketFacade;
 import exception.ResponseException;
 import model.*;
 import requestsresults.*;
@@ -20,10 +22,13 @@ public class ChessClient {
     private String activeGameName;
     private ChessGame.TeamColor pov;
     private ChessboardDrawer drawer;
+    private final NotificationHandler notificationHandler;
+    private WebSocketFacade ws;
 
-    public ChessClient(String serverurl) {
+    public ChessClient(String serverurl, NotificationHandler handler) {
         server = new ServerFacade(serverurl);
         state = State.LOGGEDOUT;
+        notificationHandler = handler;
     }
 
     public String eval(String input) {
