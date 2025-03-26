@@ -264,6 +264,13 @@ public class ChessClient {
         return "";
     }
 
+    public String updateGame(GameData game) {
+        activeGame = game.game();
+        activeGameName = game.gameName();
+        drawer = new ChessboardDrawer(activeGame, pov);
+        return drawer.drawBoard();
+    }
+
     public String quit() throws ResponseException {
         return switch (state) {
             case LOGGEDOUT -> "Thank you for using the chess client!";

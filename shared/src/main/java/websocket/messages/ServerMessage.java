@@ -1,6 +1,6 @@
 package websocket.messages;
 
-import chess.ChessGame;
+import model.GameData;
 
 import java.util.Objects;
 
@@ -13,7 +13,7 @@ public class ServerMessage {
     ServerMessageType serverMessageType;
     private String message;
     private String errorMessage;
-    private ChessGame game;
+    private GameData game;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -61,7 +61,7 @@ public class ServerMessage {
         return errorMessage;
     }
 
-    public void setGame(ChessGame game) {
+    public void setGame(GameData game) {
         if (serverMessageType != ServerMessageType.LOAD_GAME) {
             String warningMessage = String.format("WARNING: Unexpected game added to %s ServerMessage", serverMessageType);
             System.out.println(warningMessage);
@@ -69,7 +69,7 @@ public class ServerMessage {
         this.game = game;
     }
 
-    public ChessGame getGame() {
+    public GameData getGame() {
         if (serverMessageType != ServerMessageType.LOAD_GAME) {
             String warningMessage = String.format("WARNING: Unexpected game retrieved from %s ServerMessage", serverMessageType);
             System.out.println(warningMessage);

@@ -38,7 +38,24 @@ public class Repl implements NotificationHandler {
     }
 
     public void notify(ServerMessage serverMessage) {
+        switch (serverMessage.getServerMessageType()) {
+            case ERROR -> handleError(serverMessage);
+            case LOAD_GAME -> handleLoadGame(serverMessage);
+            case NOTIFICATION -> handleNotification(serverMessage);
+        }
+        printPrompt();
+    }
 
+    private void handleLoadGame(ServerMessage serverMessage) {
+        System.out.println(client.updateGame(serverMessage.getGame()));
+    }
+
+    private void handleError(ServerMessage serverMessage) {
+        System.out.println(SET_TEXT_COLOR_RED + serverMessage.getErrorMessage());
+    }
+
+    private void handleNotification(ServerMessage serverMessage) {
+        System.out.println(SET_TEXT_COLOR_GREEN + serverMessage.getMessage());
     }
 
     private void printPrompt() {
