@@ -5,11 +5,10 @@ import exception.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import requestsresults.JoinRequest;
 import service.GameService;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
-
+import chess.*;
 import java.io.IOException;
 
 
@@ -66,6 +65,45 @@ public class WebSocketHandler {
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(message);
         connections.broadcast(username, serverMessage);
+    }
+
+    private void makeMove(UserGameCommand command) throws IOException {}
+
+    private String prettyMovePrinter(String username, ChessMove move, ChessGame game) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(username);
+        builder.append(" moved the ");
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPosition endPosition = move.getEndPosition();
+        ChessPiece piece = game.getBoard().getPiece(startPosition);
+        builder.append(piece.getName());
+        builder.append(" on ");
+        builder.append(prettyPositionPrinter(startPosition));
+        builder.append(" to ");
+        builder.append(prettyPositionPrinter(endPosition));
+        ChessPiece.PieceType promotion = move.getPromotionPiece();
+        if (promotion != null) {
+            builder.append(", promoting it to a ");
+            builder.append(new ChessPiece(ChessGame.TeamColor.WHITE, promotion).getName());
+        }
+        builder.append(".");
+        return builder.toString();
+    }
+
+    private String prettyPositionPrinter(ChessPosition position) {
+        String col = switch(position.getColumn()) {
+            case 1 -> "a";
+            case 2 -> "b";
+            case 3 -> "c";
+            case 4 -> "d";
+            case 5 -> "e";
+            case 6 -> "f";
+            case 7 -> "g";
+            case 8 -> "h";
+            default -> "ERR";
+        };
+        int row = position.getRow();
+        return col + row;
     }
 
 }

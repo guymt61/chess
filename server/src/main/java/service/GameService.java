@@ -100,14 +100,14 @@ public class GameService {
         //else, Player wasn't in this game, most likely an observer
     }
 
-    public ChessGame makeMove(int id, ChessMove move) throws ResponseException {
+    public GameData makeMove(int id, ChessMove move) throws ResponseException {
         try {
             GameData gameData = gameDAO.getGame(id);
             ChessGame game = gameData.game();
             game.makeMove(move);
             GameData updatedData = new GameData(id, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
             gameDAO.updateGame(updatedData);
-            return game;
+            return updatedData;
         }
         catch (Exception e) {
             throw new ResponseException(500, e.getMessage());

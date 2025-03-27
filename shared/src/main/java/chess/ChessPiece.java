@@ -31,6 +31,17 @@ public class ChessPiece {
         return Objects.hash(myColor, myType);
     }
 
+    public String getName() {
+        return switch (myType) {
+            case ROOK -> "rook";
+            case KING -> "king";
+            case BISHOP -> "bishop";
+            case KNIGHT -> "knight";
+            case QUEEN -> "queen";
+            case PAWN -> "pawn";
+        };
+    }
+
     /**
      * The various different chess piece options
      */
