@@ -120,6 +120,10 @@ public class WebSocketHandler {
         return col + row;
     }
 
-    private void errorHandler(String username, Exception error) {}
+    private void errorHandler(String username, Exception error) throws IOException {
+        var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+        serverErrorMessage.setErrorMessage(error.getMessage());
+        connections.send(username, serverErrorMessage);
+    }
 
 }

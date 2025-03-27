@@ -37,4 +37,16 @@ public class ConnectionManager {
             connections.remove(c.username);
         }
     }
+
+    public void send(String username, ServerMessage serverMessage) throws IOException {
+        Connection connection = connections.get(username);
+        if (connection != null) {
+            if (connection.session.isOpen()) {
+                connection.send(new Gson().toJson(serverMessage));
+            }
+            else {
+                connections.remove(username);
+            }
+        }
+    }
 }
