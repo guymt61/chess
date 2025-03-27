@@ -1,6 +1,8 @@
 package service;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.DataAccessException;
 import dataaccess.*;
 import exception.ResponseException;
@@ -96,5 +98,19 @@ public class GameService {
             gameDAO.updateGame(updatedGame);
         }
         //else, Player wasn't in this game, most likely an observer
+    }
+
+    public ChessGame makeMove(int id, ChessMove move) throws ResponseException {
+        try {
+            GameData gameData = gameDAO.getGame(id);
+            ChessGame game = gameData.game();
+            game.makeMove(move);
+            GameData updatedData = new GameData(id, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+            gameDAO.updateGame(updatedData);
+            return game;
+        }
+        catch (Exception e) {
+            throw new ResponseException(500, e.getMessage());
+        }
     }
 }
