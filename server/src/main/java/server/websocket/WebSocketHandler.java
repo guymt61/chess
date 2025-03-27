@@ -20,6 +20,8 @@ public class WebSocketHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
 
+    private boolean over = false;
+
 
     public WebSocketHandler(GameService gameService) {
         this.gameService = gameService;
@@ -34,6 +36,10 @@ public class WebSocketHandler {
             case MAKE_MOVE -> makeMove(command);
             //case RESIGN -> ;
         }
+    }
+
+    public void declareOver() {
+        over = true;
     }
 
     private void connect(UserGameCommand command, Session session) throws IOException {
@@ -70,6 +76,11 @@ public class WebSocketHandler {
 
     private void makeMove(UserGameCommand command) throws IOException {
         String username = command.getUsername();
+        try {
+            assertNotOver();
+        } catch (Exception e) {
+            errorHandler(username, e);
+        }
         ChessMove move = new Gson().fromJson(command.getMove(), ChessMove.class);
         try {
             GameData afterMove = gameService.makeMove(command.getGameID(), move);
@@ -124,6 +135,12 @@ public class WebSocketHandler {
         var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
         serverErrorMessage.setErrorMessage(error.getMessage());
         connections.send(username, serverErrorMessage);
+    }
+
+    private void assertNotOver() throws Exception{
+        if (over) {
+            throw new Exception("This game is over");
+        }
     }
 
 }
