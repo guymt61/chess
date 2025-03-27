@@ -79,4 +79,32 @@ public class GameService {
         }
         return new JoinResult();
     }
+
+    public void removePlayer(JoinRequest joinReq) throws ResponseException, DataAccessException {
+        verifyAuth(joinReq.authToken());
+        String username = authDAO.getAuth(joinReq.authToken()).user();
+        GameData gameToJoin = gameDAO.getGame(joinReq.gameID());
+        if (gameToJoin == null || joinReq.playerColor() == null) {
+            throw new ResponseException(400, "Error: bad request");
+        }
+        if (joinReq.playerColor().equals("WHITE")) {
+            if (!gameToJoin.whiteUsername().equals(username)) {
+                String errorMessage = String.format("Error: Cannot remove %s as player white because they do not control white", username);
+                throw new ResponseException(403, errorMessage);
+            }
+            GameData updatedGame = new GameData(joinReq.gameID(), null, gameToJoin.blackUsername(), gameToJoin.gameName(), gameToJoin.game());
+            gameDAO.updateGame(updatedGame);
+        }
+        else if (joinReq.playerColor().equals("BLACK")) {
+            if (!gameToJoin.blackUsername().equals(username)) {
+                String errorMessage = String.format("Error: Cannot remove %s as player black because they do not control black", username);
+                throw new ResponseException(403, errorMessage);
+            }
+            GameData updatedGame = new GameData(joinReq.gameID(), gameToJoin.whiteUsername(), null, gameToJoin.gameName(), gameToJoin.game());
+            gameDAO.updateGame(updatedGame);
+        }
+        else {
+            throw new ResponseException(400, "Error: bad request");
+        }
+    }
 }
