@@ -18,10 +18,23 @@ public class UserGameCommand {
 
     private ChessMove move;
 
+    private ConnectType joinAs;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    private String username = "";
+
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
+        this.joinAs = ConnectType.OBSERVER;
     }
 
     public enum CommandType {
@@ -29,6 +42,12 @@ public class UserGameCommand {
         MAKE_MOVE,
         LEAVE,
         RESIGN
+    }
+
+    public enum ConnectType {
+        OBSERVER,
+        WHITE,
+        BLACK
     }
 
     public void setMove(ChessMove move) {
@@ -57,6 +76,22 @@ public class UserGameCommand {
 
     public Integer getGameID() {
         return gameID;
+    }
+
+    public void setConnectType(ConnectType mode) {
+        if (commandType != CommandType.CONNECT) {
+            String warningMessage = String.format("WARNING: Unexpected ConnectType added to %s UserGameCommand", commandType);
+            System.out.println(warningMessage);
+        }
+        this.joinAs = mode;
+    }
+
+    public ConnectType getConnectType() {
+        if (commandType != CommandType.CONNECT) {
+            String warningMessage = String.format("WARNING: Unexpected ConnectType retrieved from %s UserGameCommand", commandType);
+            System.out.println(warningMessage);
+        }
+        return this.joinAs;
     }
 
     @Override
