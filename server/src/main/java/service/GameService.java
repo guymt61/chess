@@ -95,8 +95,6 @@ public class GameService {
             GameData updatedGame = new GameData(id, gameToJoin.whiteUsername(), null, gameToJoin.gameName(), gameToJoin.game());
             gameDAO.updateGame(updatedGame);
         }
-        else {
-            throw new ResponseException(400, "Error: bad request");
-        }
+        //else, Player wasn't in this game, most likely an observer
     }
 }
