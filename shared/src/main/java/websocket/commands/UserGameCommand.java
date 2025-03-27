@@ -16,7 +16,7 @@ public class UserGameCommand {
 
     private final Integer gameID;
 
-    private ChessMove move;
+    private String moveJson;
 
     private ConnectType joinAs;
 
@@ -50,20 +50,20 @@ public class UserGameCommand {
         BLACK
     }
 
-    public void setMove(ChessMove move) {
+    public void setMove(String json) {
         if(commandType != CommandType.MAKE_MOVE) {
             String warningMessage = String.format("WARNING: Unexpected move added to %s UserGameCommand", commandType);
             System.out.println(warningMessage);
         }
-        this.move = move;
+        this.moveJson = json;
     }
 
-    public ChessMove getMove() {
+    public String getMove() {
         if(commandType != CommandType.MAKE_MOVE) {
             String warningMessage = String.format("WARNING: Unexpected move retrieved from %s UserGameCommand", commandType);
             System.out.println(warningMessage);
         }
-        return move;
+        return moveJson;
     }
 
     public CommandType getCommandType() {
