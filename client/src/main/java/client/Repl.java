@@ -1,6 +1,8 @@
 package client;
 
 import client.websocket.NotificationHandler;
+import com.google.gson.Gson;
+import model.GameData;
 import websocket.messages.ServerMessage;
 
 import java.util.Scanner;
@@ -47,7 +49,9 @@ public class Repl implements NotificationHandler {
     }
 
     private void handleLoadGame(ServerMessage serverMessage) {
-        System.out.println(client.updateGame(serverMessage.getGame()));
+        String gameDataJson = serverMessage.getGameJson();
+        GameData gameData = new Gson().fromJson(gameDataJson, GameData.class);
+        System.out.println(client.updateGame(gameData));
     }
 
     private void handleError(ServerMessage serverMessage) {

@@ -13,7 +13,7 @@ public class ServerMessage {
     ServerMessageType serverMessageType;
     private String message;
     private String errorMessage;
-    private GameData game;
+    private String gameDataJson;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -61,20 +61,20 @@ public class ServerMessage {
         return errorMessage;
     }
 
-    public void setGame(GameData game) {
+    public void setGame(String json) {
         if (serverMessageType != ServerMessageType.LOAD_GAME) {
             String warningMessage = String.format("WARNING: Unexpected game added to %s ServerMessage", serverMessageType);
             System.out.println(warningMessage);
         }
-        this.game = game;
+        this.gameDataJson = json;
     }
 
-    public GameData getGame() {
+    public String getGameJson() {
         if (serverMessageType != ServerMessageType.LOAD_GAME) {
             String warningMessage = String.format("WARNING: Unexpected game retrieved from %s ServerMessage", serverMessageType);
             System.out.println(warningMessage);
         }
-        return game;
+        return gameDataJson;
     }
 
     @Override
