@@ -131,6 +131,20 @@ public class WebSocketHandler {
         return col + row;
     }
 
+    private void resign(UserGameCommand command) throws IOException {
+        String username = command.getUsername();
+        try {
+            assertNotOver();
+        }
+        catch (Exception e) {
+            errorHandler(username, e);
+        }
+        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        serverMessage.setMessage(String.format("%s has resigned", username));
+        over = true;
+        connections.broadcast(username, serverMessage);
+    }
+
     private void errorHandler(String username, Exception error) throws IOException {
         var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
         serverErrorMessage.setErrorMessage(error.getMessage());
