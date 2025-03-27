@@ -14,12 +14,14 @@ import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 public class ChessClient {
 
     private State state;
+    private final String url;
     private final ServerFacade server;
     private String authToken;
     private String username;
     private HashMap<Integer, Integer> displayedIDConverter;
     private ChessGame activeGame;
     private String activeGameName;
+    private int activeGameId;
     private ChessGame.TeamColor pov;
     private ChessboardDrawer drawer;
     private final NotificationHandler notificationHandler;
@@ -27,6 +29,7 @@ public class ChessClient {
 
     public ChessClient(String serverurl, NotificationHandler handler) {
         server = new ServerFacade(serverurl);
+        url = serverurl;
         state = State.LOGGEDOUT;
         notificationHandler = handler;
     }
@@ -205,6 +208,8 @@ public class ChessClient {
                     if (data.gameID() == trueID) {
                         activeGame = data.game();
                         activeGameName = data.gameName();
+                        activeGameId = data.gameID();
+                        ws = new WebSocketFacade(url, notificationHandler);
                         break;
                     }
                 }
@@ -214,6 +219,9 @@ public class ChessClient {
                 return formatted + drawer.drawBoard();
             } catch (NumberFormatException e) {
                 throw new ResponseException(415, "Error: id must be supplied as an integer");
+            }
+            catch (Exception e) {
+                throw new ResponseException(500, e.getMessage());
             }
         }
         else {
@@ -236,11 +244,16 @@ public class ChessClient {
                     if (data.gameID() == trueID) {
                         activeGame = data.game();
                         activeGameName = data.gameName();
+                        activeGameId = data.gameID();
+                        ws = new WebSocketFacade(url, notificationHandler);
                         break;
                     }
                 }
             } catch (NumberFormatException e) {
                 throw new ResponseException(415, "Error: id must be supplied as an integer");
+            }
+            catch (Exception e) {
+                throw new ResponseException(500, e.getMessage());
             }
             String observingMessage = String.format("Now observing game %s.%n", activeGameName);
             pov = ChessGame.TeamColor.WHITE;
@@ -285,21 +298,26 @@ public class ChessClient {
         };
     }
 
-    public String exitGame() {
+    public String exitGame() throws ResponseException {
+        ws.leave(authToken, activeGameId);
         String exitMessage = String.format("You have exited game %s. Thanks for playing!", activeGameName);
-        //Add code to remove player from the game
+        ws = null;
         activeGame = null;
         activeGameName = null;
+        activeGameId = -1;
         state = State.LOGGEDIN;
         pov = null;
         drawer = null;
         return exitMessage;
     }
 
-    public String exitObservation() {
+    public String exitObservation() throws ResponseException  {
+        ws.leave(authToken, activeGameId);
         String exitMessage = String.format("You are no longer observing game %s.", activeGameName);
+        ws = null;
         activeGame = null;
         activeGameName = null;
+        activeGameId = -1;
         state = State.LOGGEDIN;
         pov = null;
         drawer = null;
