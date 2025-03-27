@@ -2,6 +2,7 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -30,7 +31,7 @@ public class WebSocketHandler {
         switch (command.getCommandType()) {
             case CONNECT -> connect(command, session);
             case LEAVE -> leave(command);
-            //case MAKE_MOVE -> ;
+            case MAKE_MOVE -> makeMove(command);
             //case RESIGN -> ;
         }
     }
@@ -57,7 +58,7 @@ public class WebSocketHandler {
             gameService.removePlayer(authToken, id);
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            errorHandler(username, e);
             return;
         }
         connections.remove(username);
@@ -67,23 +68,36 @@ public class WebSocketHandler {
         connections.broadcast(username, serverMessage);
     }
 
-    private void makeMove(UserGameCommand command) throws IOException {}
+    private void makeMove(UserGameCommand command) throws IOException {
+        String username = command.getUsername();
+        ChessMove move = new Gson().fromJson(command.getMove(), ChessMove.class);
+        try {
+            GameData afterMove = gameService.makeMove(command.getGameID(), move);
+            var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            loadMessage.setGame(new Gson().toJson(afterMove));
+            connections.broadcast("", loadMessage);
+            var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            notificationMessage.setMessage(prettyMovePrinter(username,move));
+            connections.broadcast(username, notificationMessage);
+        }
+        catch (ResponseException e) {
+            errorHandler(username, e);
+        }
 
-    private String prettyMovePrinter(String username, ChessMove move, ChessGame game) {
+    }
+
+    private String prettyMovePrinter(String username, ChessMove move) {
         StringBuilder builder = new StringBuilder();
         builder.append(username);
-        builder.append(" moved the ");
+        builder.append(" moved from ");
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
-        ChessPiece piece = game.getBoard().getPiece(startPosition);
-        builder.append(piece.getName());
-        builder.append(" on ");
         builder.append(prettyPositionPrinter(startPosition));
         builder.append(" to ");
         builder.append(prettyPositionPrinter(endPosition));
         ChessPiece.PieceType promotion = move.getPromotionPiece();
         if (promotion != null) {
-            builder.append(", promoting it to a ");
+            builder.append(", promoting to a ");
             builder.append(new ChessPiece(ChessGame.TeamColor.WHITE, promotion).getName());
         }
         builder.append(".");
@@ -105,5 +119,7 @@ public class WebSocketHandler {
         int row = position.getRow();
         return col + row;
     }
+
+    private void errorHandler(String username, Exception error) {}
 
 }
