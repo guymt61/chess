@@ -34,13 +34,32 @@ public class WebSocketHandler {
             case CONNECT -> connect(command, session);
             case LEAVE -> leave(command);
             case MAKE_MOVE -> makeMove(command);
-            //case RESIGN -> ;
+            case RESIGN ->  resign(command);
         }
     }
 
     public void declareOver() {
         over = true;
     }
+
+//    public void announceJoin(String username, String color) throws IOException {
+//        String joinAs;
+//        if (color == null) {
+//            joinAs = "an observer.";
+//        }
+//        else {
+//            String colorLowerCase = toString().toLowerCase();
+//            if (colorLowerCase.equals("white") || colorLowerCase.equals("black")) {
+//                joinAs = colorLowerCase+".";
+//            }
+//            else {
+//                joinAs = "an observer.";
+//            }
+//        }
+//        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+//        serverMessage.setMessage(String.format("%s joined the game as %s", username, joinAs));
+//        connections.broadcast(username, serverMessage);
+//    }
 
     private void connect(UserGameCommand command, Session session) throws IOException {
         String username = command.getUsername();
@@ -141,7 +160,7 @@ public class WebSocketHandler {
         }
         ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(String.format("%s has resigned", username));
-        over = true;
+        declareOver();
         connections.broadcast(username, serverMessage);
     }
 

@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import exception.ResponseException;
+import server.websocket.WebSocketHandler;
 import spark.*;
 import service.*;
 import dataaccess.*;
@@ -15,6 +16,7 @@ public class Server {
     private UserDAO userDAO;
     private AuthDAO authDAO;
     private GameDAO gameDAO;
+    private WebSocketHandler ws;
 
     public Server() {
         try {
@@ -23,6 +25,7 @@ public class Server {
             gameDAO = new MySQLGameDAO();
             userService = new UserService(userDAO, authDAO);
             gameService = new GameService(gameDAO, authDAO);
+            ws = new WebSocketHandler(gameService);
         }
         catch (Throwable ex) {
             System.out.printf("Unable to start server: %s %n", ex);
@@ -40,6 +43,7 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // Register your endpoints and handle exceptions here.
+        Spark.webSocket("/ws", ws);
         Spark.post("/user", this::register);
         Spark.post("/session", this::login);
         Spark.delete("/session", this::logout);
