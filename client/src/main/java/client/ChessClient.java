@@ -209,7 +209,7 @@ public class ChessClient {
                         activeGame = data.game();
                         activeGameName = data.gameName();
                         activeGameId = data.gameID();
-                        ws = new WebSocketFacade(url, notificationHandler);
+                        ws = new WebSocketFacade(url, notificationHandler, username);
                         ws.connect(authToken,activeGameId, pov);
                         break;
                     }
@@ -246,7 +246,7 @@ public class ChessClient {
                         activeGame = data.game();
                         activeGameName = data.gameName();
                         activeGameId = data.gameID();
-                        ws = new WebSocketFacade(url, notificationHandler);
+                        ws = new WebSocketFacade(url, notificationHandler, username);
                         ws.connect(authToken, activeGameId, null);
                         break;
                     }
