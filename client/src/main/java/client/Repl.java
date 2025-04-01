@@ -59,6 +59,7 @@ public class Repl implements NotificationHandler {
     }
 
     private void handleNotification(ServerMessage serverMessage) {
+        System.out.println("Received a notification!");
         System.out.println(SET_TEXT_COLOR_GREEN + serverMessage.getMessage());
     }
 

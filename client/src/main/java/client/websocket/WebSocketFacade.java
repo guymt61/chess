@@ -1,5 +1,6 @@
 package client.websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -31,6 +32,7 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
+                    System.out.println("I just got a message!");
                     ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
                     notificationHandler.notify(serverMessage);
                 }
@@ -45,9 +47,20 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void connect(String authToken, int id) throws ResponseException {
+    public void connect(String authToken, int id, ChessGame.TeamColor pov) throws ResponseException {
         try {
+            UserGameCommand.ConnectType joinAs;
+            if (pov == null) {
+                joinAs = UserGameCommand.ConnectType.OBSERVER;
+            }
+            else {
+                joinAs = switch (pov) {
+                    case WHITE -> UserGameCommand.ConnectType.WHITE;
+                    case BLACK -> UserGameCommand.ConnectType.BLACK;
+                };
+            }
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, id);
+            command.setConnectType(joinAs);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         }
         catch (Exception e) {
