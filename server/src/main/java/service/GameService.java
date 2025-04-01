@@ -89,13 +89,17 @@ public class GameService {
         if (gameToJoin == null) {
             throw new ResponseException(400, "Error: bad request");
         }
-        if (gameToJoin.whiteUsername().equals(username)) {
-            GameData updatedGame = new GameData(id, null, gameToJoin.blackUsername(), gameToJoin.gameName(), gameToJoin.game());
-            gameDAO.updateGame(updatedGame);
+        if (gameToJoin.whiteUsername() != null) {
+            if (gameToJoin.whiteUsername().equals(username)) {
+                GameData updatedGame = new GameData(id, null, gameToJoin.blackUsername(), gameToJoin.gameName(), gameToJoin.game());
+                gameDAO.updateGame(updatedGame);
+            }
         }
-        if (!gameToJoin.blackUsername().equals(username)) {
-            GameData updatedGame = new GameData(id, gameToJoin.whiteUsername(), null, gameToJoin.gameName(), gameToJoin.game());
-            gameDAO.updateGame(updatedGame);
+        if (gameToJoin.blackUsername() != null) {
+            if (gameToJoin.blackUsername().equals(username)) {
+                GameData updatedGame = new GameData(id, gameToJoin.whiteUsername(), null, gameToJoin.gameName(), gameToJoin.game());
+                gameDAO.updateGame(updatedGame);
+            }
         }
         //else, Player wasn't in this game, most likely an observer
     }
