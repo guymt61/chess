@@ -1,5 +1,7 @@
 package client;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
@@ -48,8 +50,9 @@ public class ChessClient {
                 case "list" -> list(params);
                 case "join" -> join(params);
                 case "observe" -> observe(params);
-                case "quit" -> quit();
+                case "quit", "leave" -> quit();
                 case "redraw" -> redraw();
+                case "move" -> makeMove(params);
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -335,6 +338,32 @@ public class ChessClient {
         return drawer.drawBoard();
     }
 
+    public String makeMove(String... params) throws ResponseException {
+        if (state != State.INGAME) {
+            throw new ResponseException(423, "You must be playing a game to use this command");
+        }
+        if (params.length == 2) {
+            String startPosString = params[0];
+            ChessPosition startPosition = positionFromString(startPosString);
+            String endPosString = params[1];
+            ChessPosition endPosition = positionFromString(endPosString);
+            ChessMove move = new ChessMove(startPosition, endPosition, null);
+            ws.makeMove(authToken, activeGameId, move);
+            return "";
+        }
+        if (params.length == 3) {
+            String startPosString = params[0];
+            ChessPosition startPosition = positionFromString(startPosString);
+            String endPosString = params[1];
+            ChessPosition endPosition = positionFromString(endPosString);
+            ChessPiece.PieceType promotion = pieceTypeFromString(params[2]);
+            ChessMove move = new ChessMove(startPosition, endPosition, promotion);
+            ws.makeMove(authToken, activeGameId, move);
+            return "";
+        }
+        throw new ResponseException(407, "Expected: <start> <end> ?promotionPiece?");
+    }
+
     private void assertLoggedIn() throws ResponseException {
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(409, "You must be logged in to use this command. Please use logIn or register first.");
@@ -376,5 +405,17 @@ public class ChessClient {
             throw new ResponseException(421, String.format("'%s' is not a valid column", positionString.charAt(0)));
         }
         return new ChessPosition(row, col);
+    }
+
+    private ChessPiece.PieceType pieceTypeFromString(String pieceString) throws ResponseException {
+        return switch (pieceString.toLowerCase()) {
+            case "king" -> ChessPiece.PieceType.KING;
+            case "queen" -> ChessPiece.PieceType.QUEEN;
+            case "bishop" -> ChessPiece.PieceType.BISHOP;
+            case "knight" -> ChessPiece.PieceType.KNIGHT;
+            case "rook" -> ChessPiece.PieceType.ROOK;
+            case "pawn" -> ChessPiece.PieceType.PAWN;
+            default -> throw new ResponseException(425, String.format("'%s' is not a valid piece type", pieceString));
+        };
     }
 }
