@@ -14,6 +14,8 @@ import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 import chess.*;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @WebSocket
@@ -24,6 +26,8 @@ public class WebSocketHandler {
     private final AuthDAO authDAO;
 
     private final ConnectionManager connections = new ConnectionManager();
+
+    private final HashMap<Integer, Boolean> activeGames = new HashMap<>();
 
     private boolean over = false;
 
@@ -42,8 +46,8 @@ public class WebSocketHandler {
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command, session);
                 case LEAVE -> leave(command);
-                case MAKE_MOVE -> makeMove(command);
-                case RESIGN -> resign(command);
+                case MAKE_MOVE -> makeMove(command, session);
+                case RESIGN -> resign(command, session);
             }
         } catch (Exception e) {
             ServerMessage errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
@@ -72,6 +76,7 @@ public class WebSocketHandler {
         }
         connections.add(username, session);
         var message = String.format("%s joined the game as %s.", username, joinAs);
+        activeGames.putIfAbsent(game.gameID(), true);
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(message);
         connections.broadcast(username, serverMessage);
@@ -99,12 +104,33 @@ public class WebSocketHandler {
         connections.broadcast(username, serverMessage);
     }
 
-    private void makeMove(UserGameCommand command) throws IOException {
+    private void makeMove(UserGameCommand command, Session session) throws IOException {
         String username = command.getUsername();
-        try {
-            assertNotOver();
-        } catch (Exception e) {
-            errorHandler(username, e);
+        GameData gameData = command.getGameData();
+        String white = gameData.whiteUsername();
+        String black = gameData.blackUsername();
+        int gameId = command.getGameID();
+        ChessGame chessGame = gameData.game();
+        if (!username.equals(white) && !username.equals(black)) {
+            ServerMessage observerError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            observerError.setErrorMessage("You are not a player in this game");
+            session.getRemote().sendString(new Gson().toJson(observerError));
+            return;
+        }
+        String whoseTurn = switch (chessGame.getTeamTurn()) {
+            case WHITE -> "WHITE";
+            case BLACK -> "BLACK";
+        };
+        if ((username.equals(white) && whoseTurn.equals("BLACK")) || (username.equals(black) && whoseTurn.equals("WHITE"))) {
+            ServerMessage wrongTurnError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            wrongTurnError.setErrorMessage("It is not your turn");
+            session.getRemote().sendString(new Gson().toJson(wrongTurnError));
+            return;
+        }
+        if (!activeGames.get(gameId)) {
+            ServerMessage gameOverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            gameOverError.setErrorMessage("This game is over.");
+            session.getRemote().sendString(new Gson().toJson(gameOverError));
             return;
         }
         ChessMove move = command.getMove();
@@ -159,30 +185,33 @@ public class WebSocketHandler {
         return col + row;
     }
 
-    private void resign(UserGameCommand command) throws IOException {
+    private void resign(UserGameCommand command, Session session) throws IOException {
         String username = command.getUsername();
-        try {
-            assertNotOver();
+        GameData game = command.getGameData();
+        int gameId = command.getGameID();
+        if (!activeGames.get(gameId)) {
+            ServerMessage gameOverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            gameOverError.setErrorMessage("This game is over.");
+            session.getRemote().sendString(new Gson().toJson(gameOverError));
+            return;
         }
-        catch (Exception e) {
-            errorHandler(username, e);
+        if (username.equals(game.whiteUsername()) || username.equals(game.blackUsername())) {
+            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            serverMessage.setMessage(String.format("%s has resigned", username));
+            activeGames.replace(gameId, false);
+            connections.broadcast("", serverMessage);
         }
-        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        serverMessage.setMessage(String.format("%s has resigned", username));
-        declareOver();
-        connections.broadcast(username, serverMessage);
+        else {
+            ServerMessage errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            errorMessage.setErrorMessage("You cannot resign as an observer");
+            session.getRemote().sendString(new Gson().toJson(errorMessage));
+        }
     }
 
     private void errorHandler(String username, Exception error) throws IOException {
         var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
         serverErrorMessage.setErrorMessage(error.getMessage());
         connections.send(username, serverErrorMessage);
-    }
-
-    private void assertNotOver() throws Exception{
-        if (over) {
-            throw new Exception("This game is over");
-        }
     }
 
     private void checkGameState(GameData gameData) throws IOException {
