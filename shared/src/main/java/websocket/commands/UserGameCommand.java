@@ -1,6 +1,7 @@
 package websocket.commands;
 
 import java.util.Objects;
+
 import chess.ChessMove;
 import model.GameData;
 
@@ -14,7 +15,7 @@ public class UserGameCommand {
     private final CommandType commandType;
     private final String authToken;
     private final Integer gameID;
-    private String moveJson;
+    private ChessMove move;
     private GameData gameData;
 
     public String getUsername() {
@@ -41,20 +42,20 @@ public class UserGameCommand {
     }
 
 
-    public void setMove(String json) {
+    public void setMove(ChessMove move) {
         if(commandType != CommandType.MAKE_MOVE) {
             String warningMessage = String.format("WARNING: Unexpected move added to %s UserGameCommand", commandType);
             System.out.println(warningMessage);
         }
-        this.moveJson = json;
+        this.move = move;
     }
 
-    public String getMove() {
+    public ChessMove getMove() {
         if(commandType != CommandType.MAKE_MOVE) {
             String warningMessage = String.format("WARNING: Unexpected move retrieved from %s UserGameCommand", commandType);
             System.out.println(warningMessage);
         }
-        return moveJson;
+        return move;
     }
 
     public CommandType getCommandType() {

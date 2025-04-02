@@ -107,7 +107,7 @@ public class WebSocketHandler {
             errorHandler(username, e);
             return;
         }
-        ChessMove move = new Gson().fromJson(command.getMove(), ChessMove.class);
+        ChessMove move = command.getMove();
         try {
             GameData afterMove = gameService.makeMove(command.getGameID(), move);
             var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
@@ -116,7 +116,7 @@ public class WebSocketHandler {
             connections.broadcast("", loadMessage);
             var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notificationMessage.setMessage(prettyMovePrinter(username,move));
-            connections.broadcast("", notificationMessage);
+            connections.broadcast(username, notificationMessage);
             checkGameState(afterMove);
         }
         catch (ResponseException e) {
