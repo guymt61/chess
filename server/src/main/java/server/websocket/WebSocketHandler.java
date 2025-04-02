@@ -42,25 +42,6 @@ public class WebSocketHandler {
         over = true;
     }
 
-//    public void announceJoin(String username, String color) throws IOException {
-//        String joinAs;
-//        if (color == null) {
-//            joinAs = "an observer.";
-//        }
-//        else {
-//            String colorLowerCase = toString().toLowerCase();
-//            if (colorLowerCase.equals("white") || colorLowerCase.equals("black")) {
-//                joinAs = colorLowerCase+".";
-//            }
-//            else {
-//                joinAs = "an observer.";
-//            }
-//        }
-//        ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-//        serverMessage.setMessage(String.format("%s joined the game as %s", username, joinAs));
-//        connections.broadcast(username, serverMessage);
-//    }
-
     private void connect(UserGameCommand command, Session session) throws IOException {
         String username = command.getUsername();
         String joinAs = switch (command.getConnectType()) {
@@ -109,6 +90,8 @@ public class WebSocketHandler {
             var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notificationMessage.setMessage(prettyMovePrinter(username,move));
             connections.broadcast(username, notificationMessage);
+            ChessGame game = afterMove.game();
+            checkGameState(game);
         }
         catch (ResponseException e) {
             errorHandler(username, e);
@@ -173,6 +156,45 @@ public class WebSocketHandler {
     private void assertNotOver() throws Exception{
         if (over) {
             throw new Exception("This game is over");
+        }
+    }
+
+    private void checkGameState(ChessGame game) throws IOException {
+        if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            ServerMessage whiteInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            whiteInCheckmate.setMessage("White is in checkmate. Black wins!");
+            connections.broadcast("", whiteInCheckmate);
+            declareOver();
+            return;
+        }
+        if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            ServerMessage blackInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            blackInCheckmate.setMessage("Black is in checkmate. White wins!");
+            connections.broadcast("", blackInCheckmate);
+            declareOver();
+            return;
+        }
+        if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
+            ServerMessage whiteInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            whiteInStalemate.setMessage("White is in stalemate. Draw.");
+            connections.broadcast("", whiteInStalemate);
+            declareOver();
+            return;
+        }
+        if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            ServerMessage blackInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            blackInStalemate.setMessage("Black is in stalemate. Draw.");
+            connections.broadcast("", blackInStalemate);
+            declareOver();
+            return;
+        }
+        if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+            ServerMessage whiteInCheck = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            whiteInCheck.setMessage("White is in check.");
+        }
+        if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            ServerMessage blackInCheck = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            blackInCheck.setMessage("Black is in check.");
         }
     }
 
