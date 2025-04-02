@@ -9,19 +9,21 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final ConcurrentHashMap<String, Connection> connections = new ConcurrentHashMap<>();
+    public final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Connection>> games = new ConcurrentHashMap<>();
 
-    public void add(String username, Session session) {
+    public void add(int gameId, String username, Session session) {
         var connection = new Connection(username, session);
-        connections.put(username, connection);
+        games.putIfAbsent(gameId, new ConcurrentHashMap<>());
+        games.get(gameId).put(username, connection);
     }
 
-    public void remove(String username) {
-        connections.remove(username);
+    public void remove(int gameId, String username) {
+        games.get(gameId).remove(username);
     }
 
-    public void broadcast(String excludeUsername, ServerMessage serverMessage) throws IOException {
+    public void broadcast(int gameId, String excludeUsername, ServerMessage serverMessage) throws IOException {
         var removeList = new ArrayList<Connection>();
+        ConcurrentHashMap<String, Connection> connections = games.get(gameId);
         for (var c : connections.values()) {
             if (c.session.isOpen()) {
                 if (!c.username.equals(excludeUsername)) {
@@ -38,14 +40,14 @@ public class ConnectionManager {
         }
     }
 
-    public void send(String username, ServerMessage serverMessage) throws IOException {
-        Connection connection = connections.get(username);
+    public void send(int gameId, String username, ServerMessage serverMessage) throws IOException {
+        Connection connection = games.get(gameId).get(username);
         if (connection != null) {
             if (connection.session.isOpen()) {
                 connection.send(new Gson().toJson(serverMessage));
             }
             else {
-                connections.remove(username);
+                games.get(gameId).remove(username);
             }
         }
     }

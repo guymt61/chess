@@ -74,12 +74,12 @@ public class WebSocketHandler {
                 joinAs = "black";
             }
         }
-        connections.add(username, session);
+        connections.add(game.gameID(), username, session);
         var message = String.format("%s joined the game as %s.", username, joinAs);
         activeGames.putIfAbsent(game.gameID(), true);
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(message);
-        connections.broadcast(username, serverMessage);
+        connections.broadcast(game.gameID(), username, serverMessage);
         ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
         var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
         loadMessage.setGame(gson.toJson(game));
@@ -94,14 +94,14 @@ public class WebSocketHandler {
             gameService.removePlayer(authToken, id);
         }
         catch (Exception e) {
-            errorHandler(username, e);
+            errorHandler(id, username, e);
             return;
         }
-        connections.remove(username);
+        connections.remove(command.getGameID(), username);
         var message = String.format("%s left the game", username);
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(message);
-        connections.broadcast(username, serverMessage);
+        connections.broadcast(id, username, serverMessage);
     }
 
     private void makeMove(UserGameCommand command, Session session) throws IOException {
@@ -139,14 +139,14 @@ public class WebSocketHandler {
             var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
             var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
             loadMessage.setGame(gson.toJson(afterMove));
-            connections.broadcast("", loadMessage);
+            connections.broadcast(gameId,"", loadMessage);
             var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notificationMessage.setMessage(prettyMovePrinter(username,move));
-            connections.broadcast(username, notificationMessage);
+            connections.broadcast(gameId, username, notificationMessage);
             checkGameState(afterMove);
         }
         catch (ResponseException e) {
-            errorHandler(username, e);
+            errorHandler(gameId, username, e);
         }
 
     }
@@ -199,7 +199,7 @@ public class WebSocketHandler {
             ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             serverMessage.setMessage(String.format("%s has resigned", username));
             activeGames.replace(gameId, false);
-            connections.broadcast("", serverMessage);
+            connections.broadcast(gameId, "", serverMessage);
         }
         else {
             ServerMessage errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
@@ -208,10 +208,10 @@ public class WebSocketHandler {
         }
     }
 
-    private void errorHandler(String username, Exception error) throws IOException {
+    private void errorHandler(int gameId, String username, Exception error) throws IOException {
         var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
         serverErrorMessage.setErrorMessage(error.getMessage());
-        connections.send(username, serverErrorMessage);
+        connections.send(gameId, username, serverErrorMessage);
     }
 
     private void checkGameState(GameData gameData) throws IOException {
@@ -221,28 +221,28 @@ public class WebSocketHandler {
         if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
             ServerMessage whiteInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             whiteInCheckmate.setMessage(String.format("%s is in checkmate. %s wins!", white, black));
-            connections.broadcast("", whiteInCheckmate);
+            connections.broadcast(gameData.gameID(), "", whiteInCheckmate);
             declareOver();
             return;
         }
         if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
             ServerMessage blackInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInCheckmate.setMessage(String.format("%s is in checkmate. %s wins!", black, white));
-            connections.broadcast("", blackInCheckmate);
+            connections.broadcast(gameData.gameID(),"", blackInCheckmate);
             declareOver();
             return;
         }
         if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
             ServerMessage whiteInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             whiteInStalemate.setMessage(String.format("%s is in stalemate. Draw.", white));
-            connections.broadcast("", whiteInStalemate);
+            connections.broadcast(gameData.gameID(),"", whiteInStalemate);
             declareOver();
             return;
         }
         if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             ServerMessage blackInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInStalemate.setMessage(String.format("%s is in stalemate. Draw.", black));
-            connections.broadcast("", blackInStalemate);
+            connections.broadcast(gameData.gameID(),"", blackInStalemate);
             declareOver();
             return;
         }
