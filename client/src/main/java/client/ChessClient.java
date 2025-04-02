@@ -1,5 +1,6 @@
 package client;
 import chess.ChessGame;
+import chess.ChessPosition;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -48,6 +49,7 @@ public class ChessClient {
                 case "join" -> join(params);
                 case "observe" -> observe(params);
                 case "quit" -> quit();
+                case "redraw" -> redraw();
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -326,6 +328,13 @@ public class ChessClient {
         return exitMessage;
     }
 
+    public String redraw() throws ResponseException {
+        if (state != State.INGAME && state != State.OBSERVING) {
+            throw new ResponseException(423, "You must be playing or observing a game to use this command");
+        }
+        return drawer.drawBoard();
+    }
+
     private void assertLoggedIn() throws ResponseException {
         if (state == State.LOGGEDOUT) {
             throw new ResponseException(409, "You must be logged in to use this command. Please use logIn or register first.");
@@ -338,5 +347,34 @@ public class ChessClient {
             String messageLine2 = "Use help to list possible commands or quit to exit the game.";
             throw new ResponseException(413, messageLine1 + messageLine2);
         }
+    }
+
+    private ChessPosition positionFromString(String positionString) throws ResponseException {
+        if (positionString.length() != 2) {
+            throw new ResponseException(421, String.format("%s is not a valid position", positionString));
+        }
+        char rowChar = positionString.charAt(1);
+        String rowString = Character.toString(rowChar);
+        int row;
+        try {
+            row = Integer.parseInt(rowString);
+        } catch (NumberFormatException e) {
+            throw new ResponseException(421, String.format("'%s' is not a valid row", rowString));
+        }
+        int col = switch (positionString.toLowerCase().charAt(0)) {
+            case 'a' -> 1;
+            case 'b' -> 2;
+            case 'c' -> 3;
+            case 'd' -> 4;
+            case 'e' -> 5;
+            case 'f' -> 6;
+            case 'g' -> 7;
+            case 'h' -> 9;
+            default -> -1;
+        };
+        if (col == -1) {
+            throw new ResponseException(421, String.format("'%s' is not a valid column", positionString.charAt(0)));
+        }
+        return new ChessPosition(row, col);
     }
 }
