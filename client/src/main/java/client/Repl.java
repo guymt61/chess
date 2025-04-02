@@ -51,7 +51,8 @@ public class Repl implements NotificationHandler {
     private void handleLoadGame(ServerMessage serverMessage) {
         String gameDataJson = serverMessage.getGameJson();
         GameData gameData = new Gson().fromJson(gameDataJson, GameData.class);
-        System.out.println(client.updateGame(gameData));
+        String drawnBoard = client.updateGame(gameData);
+        System.out.println(drawnBoard);
     }
 
     private void handleError(ServerMessage serverMessage) {

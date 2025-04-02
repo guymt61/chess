@@ -1,6 +1,7 @@
 package server.websocket;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import exception.ResponseException;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
@@ -85,7 +86,8 @@ public class WebSocketHandler {
         try {
             GameData afterMove = gameService.makeMove(command.getGameID(), move);
             var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            loadMessage.setGame(new Gson().toJson(afterMove));
+            var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+            loadMessage.setGame(gson.toJson(afterMove));
             connections.broadcast("", loadMessage);
             var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notificationMessage.setMessage(prettyMovePrinter(username,move));
