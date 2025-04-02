@@ -27,11 +27,12 @@ public class GameService {
         }
     }
 
-    public void verifyID(int gameId) throws ResponseException {
+    public GameData getGame(int gameId) throws ResponseException {
         GameData game = gameDAO.getGame(gameId);
         if (game == null) {
             throw new ResponseException(425, "Error: Invalid game ID");
         }
+        return game;
     }
 
     public GameService(GameDAO gameDAOToUse, AuthDAO authDAOToUse) {

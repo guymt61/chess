@@ -25,7 +25,7 @@ public class Server {
             gameDAO = new MySQLGameDAO();
             userService = new UserService(userDAO, authDAO);
             gameService = new GameService(gameDAO, authDAO);
-            ws = new WebSocketHandler(gameService);
+            ws = new WebSocketHandler(gameService, authDAO);
         }
         catch (Throwable ex) {
             System.out.printf("Unable to start server: %s %n", ex);

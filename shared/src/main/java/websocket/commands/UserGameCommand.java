@@ -2,6 +2,7 @@ package websocket.commands;
 
 import java.util.Objects;
 import chess.ChessMove;
+import model.GameData;
 
 /**
  * Represents a command a user can send the server over a websocket
@@ -11,14 +12,10 @@ import chess.ChessMove;
 public class UserGameCommand {
 
     private final CommandType commandType;
-
     private final String authToken;
-
     private final Integer gameID;
-
     private String moveJson;
-
-    private ConnectType joinAs;
+    private GameData gameData;
 
     public String getUsername() {
         return username;
@@ -34,7 +31,6 @@ public class UserGameCommand {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
-        this.joinAs = ConnectType.OBSERVER;
     }
 
     public enum CommandType {
@@ -44,11 +40,6 @@ public class UserGameCommand {
         RESIGN
     }
 
-    public enum ConnectType {
-        OBSERVER,
-        WHITE,
-        BLACK
-    }
 
     public void setMove(String json) {
         if(commandType != CommandType.MAKE_MOVE) {
@@ -78,20 +69,12 @@ public class UserGameCommand {
         return gameID;
     }
 
-    public void setConnectType(ConnectType mode) {
-        if (commandType != CommandType.CONNECT) {
-            String warningMessage = String.format("WARNING: Unexpected ConnectType added to %s UserGameCommand", commandType);
-            System.out.println(warningMessage);
-        }
-        this.joinAs = mode;
+    public void setGameData(GameData gameData) {
+        this.gameData = gameData;
     }
 
-    public ConnectType getConnectType() {
-        if (commandType != CommandType.CONNECT) {
-            String warningMessage = String.format("WARNING: Unexpected ConnectType retrieved from %s UserGameCommand", commandType);
-            System.out.println(warningMessage);
-        }
-        return this.joinAs;
+    public GameData getGameData() {
+        return gameData;
     }
 
     @Override

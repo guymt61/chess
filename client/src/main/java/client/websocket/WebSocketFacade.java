@@ -49,21 +49,9 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void connect(String authToken, int id, ChessGame.TeamColor pov) throws ResponseException {
+    public void connect(String authToken, int id) throws ResponseException {
         try {
-            UserGameCommand.ConnectType joinAs;
-            if (pov == null) {
-                joinAs = UserGameCommand.ConnectType.OBSERVER;
-            }
-            else {
-                joinAs = switch (pov) {
-                    case WHITE -> UserGameCommand.ConnectType.WHITE;
-                    case BLACK -> UserGameCommand.ConnectType.BLACK;
-                };
-            }
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, id);
-            command.setConnectType(joinAs);
-            command.setUsername(username);
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         }
         catch (Exception e) {

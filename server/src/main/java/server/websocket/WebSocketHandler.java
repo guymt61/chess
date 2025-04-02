@@ -2,13 +2,14 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dataaccess.AuthDAO;
 import exception.ResponseException;
+import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.GameService;
-import service.UserService;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 import chess.*;
@@ -20,25 +21,32 @@ public class WebSocketHandler {
 
     private final GameService gameService;
 
+    private final AuthDAO authDAO;
+
     private final ConnectionManager connections = new ConnectionManager();
 
     private boolean over = false;
 
 
-    public WebSocketHandler(GameService gameService) {
+    public WebSocketHandler(GameService gameService, AuthDAO authDAO) {
         this.gameService = gameService;
+        this.authDAO = authDAO;
     }
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
-        if (validateCommand(command)) {
+        try {
+            command.setUsername(getUsername(command.getAuthToken()));
+            command.setGameData(gameService.getGame(command.getGameID()));
             switch (command.getCommandType()) {
                 case CONNECT -> connect(command, session);
                 case LEAVE -> leave(command);
                 case MAKE_MOVE -> makeMove(command);
                 case RESIGN -> resign(command);
             }
+        } catch (Exception e) {
+            session.getRemote().sendString(e.getMessage());
         }
     }
 
@@ -47,12 +55,19 @@ public class WebSocketHandler {
     }
 
     private void connect(UserGameCommand command, Session session) throws IOException {
+        GameData game = command.getGameData();
         String username = command.getUsername();
-        String joinAs = switch (command.getConnectType()) {
-            case OBSERVER -> "an observer";
-            case BLACK -> "black";
-            case WHITE -> "white";
-        };
+        String joinAs = "an observer";
+        if (game.whiteUsername() != null) {
+            if(game.whiteUsername().equals(username)) {
+                joinAs = "white";
+            }
+        }
+        if (game.blackUsername() != null) {
+            if (game.blackUsername().equals(username)) {
+                joinAs = "black";
+            }
+        }
         connections.add(username, session);
         var message = String.format("%s joined the game as %s.", username, joinAs);
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
@@ -164,17 +179,6 @@ public class WebSocketHandler {
         }
     }
 
-    private boolean validateCommand(UserGameCommand command) throws IOException {
-        try {
-            gameService.verifyAuth(command.getAuthToken());
-            gameService.verifyID(command.getGameID());
-            return true;
-        } catch (Exception e) {
-            errorHandler(command.getUsername(), e);
-            return false;
-        }
-    }
-
     private void checkGameState(GameData gameData) throws IOException {
         ChessGame game = gameData.game();
         String white = gameData.whiteUsername();
@@ -215,6 +219,14 @@ public class WebSocketHandler {
             ServerMessage blackInCheck = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInCheck.setMessage(String.format("%s is in check.", black));
         }
+    }
+
+    private String getUsername(String authToken) throws ResponseException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new ResponseException(401, "Error: Unauthorized");
+        }
+        return authData.user();
     }
 
 }
