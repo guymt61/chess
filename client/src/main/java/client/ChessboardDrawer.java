@@ -252,21 +252,10 @@ public class ChessboardDrawer {
                 output.append(pieceSuperHighlight(board.getPiece(position)));
             }
             else if (isEven(j)) {
-                if (toHighlight.contains(position)) {
-                    output.append(pieceOnDarkHighlight(board.getPiece(position)));
-                }
-                else {
-                    output.append(pieceOnDark(board.getPiece(position)));
-                }
+                darkMaybeHighlight(position, output, toHighlight);
             }
             else {
-                if (toHighlight.contains(position)) {
-                    output.append(pieceOnLightHighlight(board.getPiece(position)));
-                }
-                else {
-                    output.append(pieceOnLight(board.getPiece(position)));
-                }
-
+                lightMaybeHighlight(position, output, toHighlight);
             }
             j += jIterator;
         }
@@ -320,20 +309,10 @@ public class ChessboardDrawer {
                 output.append(pieceSuperHighlight(board.getPiece(position)));
             }
             else if (isEven(j)) {
-                if (toHighlight.contains(position)) {
-                    output.append(pieceOnLightHighlight(board.getPiece(position)));
-                }
-                else {
-                    output.append(pieceOnLight(board.getPiece(position)));
-                }
+                lightMaybeHighlight(position, output, toHighlight);
             }
             else {
-                if (toHighlight.contains(position)) {
-                    output.append(pieceOnDarkHighlight(board.getPiece(position)));
-                }
-                else {
-                    output.append(pieceOnDark(board.getPiece(position)));
-                }
+                darkMaybeHighlight(position, output, toHighlight);
             }
             j += jIterator;
         }
@@ -353,6 +332,24 @@ public class ChessboardDrawer {
         output.append("  ");
         output.append(row);
         output.append(RESET_TEXT_COLOR);
+    }
+
+    private void darkMaybeHighlight(ChessPosition position, StringBuilder output, HashSet<ChessPosition> toHighlight) {
+        if (toHighlight.contains(position)) {
+            output.append(pieceOnDarkHighlight(board.getPiece(position)));
+        }
+        else {
+            output.append(pieceOnDark(board.getPiece(position)));
+        }
+    }
+
+    private void lightMaybeHighlight(ChessPosition position, StringBuilder output, HashSet<ChessPosition> toHighlight) {
+        if (toHighlight.contains(position)) {
+            output.append(pieceOnLightHighlight(board.getPiece(position)));
+        }
+        else {
+            output.append(pieceOnLight(board.getPiece(position)));
+        }
     }
 
     /**

@@ -223,16 +223,7 @@ public class ChessClient {
                     pov = ChessGame.TeamColor.WHITE;
                 }
                 ListResult listResult = server.list(authToken);
-                for (GameData data : listResult.games()) {
-                    if (data.gameID() == trueID) {
-                        activeGame = data.game();
-                        activeGameName = data.gameName();
-                        activeGameId = data.gameID();
-                        ws = new WebSocketFacade(url, notificationHandler, username);
-                        ws.connect(authToken,activeGameId);
-                        break;
-                    }
-                }
+                activateGame(trueID, listResult);
                 String rawString = "Successfully joined game %s controlling %s.%n";
                 String formatted = String.format(rawString, activeGameName, color);
                 drawer = new ChessboardDrawer(activeGame, pov);
@@ -260,16 +251,7 @@ public class ChessClient {
                 }
                 int trueID = displayedIDConverter.get(displayedID);
                 ListResult listResult = server.list(authToken);
-                for (GameData data : listResult.games()) {
-                    if (data.gameID() == trueID) {
-                        activeGame = data.game();
-                        activeGameName = data.gameName();
-                        activeGameId = data.gameID();
-                        ws = new WebSocketFacade(url, notificationHandler, username);
-                        ws.connect(authToken, activeGameId);
-                        break;
-                    }
-                }
+                activateGame(trueID, listResult);
             } catch (NumberFormatException e) {
                 throw new ResponseException(415, "Error: id must be supplied as an integer");
             }
@@ -453,5 +435,18 @@ public class ChessClient {
             case "pawn" -> ChessPiece.PieceType.PAWN;
             default -> throw new ResponseException(425, String.format("'%s' is not a valid piece type", pieceString));
         };
+    }
+
+    private void activateGame(int trueID, ListResult listResult) throws ResponseException {
+        for (GameData data : listResult.games()) {
+            if (data.gameID() == trueID) {
+                activeGame = data.game();
+                activeGameName = data.gameName();
+                activeGameId = data.gameID();
+                ws = new WebSocketFacade(url, notificationHandler, username);
+                ws.connect(authToken, activeGameId);
+                break;
+            }
+        }
     }
 }
