@@ -1,6 +1,7 @@
 package client;
 import chess.*;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 import static ui.EscapeSequences.*;
@@ -15,10 +16,12 @@ public class ChessboardDrawer {
     private final static String DARK_BG = setColor(false, 191, 6, 6);
     private final static String LIGHT_HIGHLIGHT_BG = SET_BG_COLOR_GREEN;
     private final static String DARK_HIGHLIGHT_BG = SET_BG_COLOR_DARK_GREEN;
+    private final static String SUPER_HIGHLIGHT_BG = SET_BG_COLOR_YELLOW;
     private final static String LIGHT_FILLER = LIGHT_BG  + EMPTY + RESET_BG_COLOR;
     private final static String DARK_FILLER = DARK_BG + EMPTY + RESET_BG_COLOR;
     private final static String LIGHT_HIGHLIGHT_FILLER = LIGHT_HIGHLIGHT_BG + EMPTY + RESET_BG_COLOR;
     private final static String DARK_HIGHLIGHT_FILLER = DARK_HIGHLIGHT_BG + EMPTY + RESET_BG_COLOR;
+    private final static String SUPER_HIGHLIGHT_FILLER = SUPER_HIGHLIGHT_BG + EMPTY + RESET_BG_COLOR;
     private final static String WHITE_COLUMN_LABELS = SET_TEXT_COLOR_BLUE + "    a   b   c  d   e  f   g   h" + RESET_TEXT_COLOR;
     private final static String BLACK_COLUMN_LABELS = SET_TEXT_COLOR_BLUE + "    h   g   f  e   d  c   b   a" + RESET_TEXT_COLOR;
 
@@ -35,7 +38,7 @@ public class ChessboardDrawer {
         };
     }
 
-    public String drawWithHighlight(ChessPosition startPosition) {
+    public String drawHighlighted(ChessPosition startPosition) {
         return switch (perspective) {
             case WHITE -> drawWhitePOVHighlighted(startPosition);
             case BLACK -> drawBlackPOVHighlighted(startPosition);
@@ -86,15 +89,20 @@ public class ChessboardDrawer {
         output.append(RESET_TEXT_COLOR);
         output.append(WHITE_COLUMN_LABELS);
         output.append("\n");
+        Collection<ChessMove> validMoves = game.validMoves(startPosition);
+        HashSet<ChessPosition> toHighlight = new HashSet<>();
+        for (ChessMove move : validMoves) {
+            toHighlight.add(move.getEndPosition());
+        }
         //Work top down, from row 8 to row 1
         for (int i = 8; i > 0; i--) {
             if (isEven(i)) {
                 //Light first
-                lightPopulatedRow(output, i);
+                lightPopulatedRowHighlighted(output, i, toHighlight, startPosition);
             }
             else {
                 //Dark first
-                darkPopulatedRow(output, i);
+                darkPopulatedRowHighlighted(output, i, toHighlight, startPosition);
             }
         }
         output.append(WHITE_COLUMN_LABELS);
@@ -102,7 +110,27 @@ public class ChessboardDrawer {
     }
 
     private String drawBlackPOVHighlighted(ChessPosition startPosition) {
-        return null;
+        var output = new StringBuilder();
+        output.append(BLACK_COLUMN_LABELS);
+        output.append("\n");
+        Collection<ChessMove> validMoves = game.validMoves(startPosition);
+        HashSet<ChessPosition> toHighlight = new HashSet<>();
+        for (ChessMove move : validMoves) {
+            toHighlight.add(move.getEndPosition());
+        }
+        //Top is 1, bottom is 8
+        for (int i = 1; i <= 8; i++) {
+            if (isEven(i)) {
+                //Light first
+                lightPopulatedRowHighlighted(output, i, toHighlight, startPosition);
+            }
+            else {
+                //Dark first
+                darkPopulatedRowHighlighted(output, i, toHighlight, startPosition);
+            }
+        }
+        output.append(BLACK_COLUMN_LABELS);
+        return output.toString();
     }
 
     private String pieceOnLight(ChessPiece piece) {
@@ -137,6 +165,22 @@ public class ChessboardDrawer {
         }
         String pieceIcon = getPieceIcon(piece);
         return DARK_HIGHLIGHT_BG + pieceIcon + RESET_BG_COLOR;
+    }
+
+    private String pieceSuperHighlight(ChessPiece piece) {
+        if (piece == null) {
+            return SUPER_HIGHLIGHT_FILLER;
+        }
+        String pieceIcon = SET_TEXT_COLOR_BLUE;
+        pieceIcon += switch (piece.getPieceType()) {
+            case PAWN -> BLACK_PAWN;
+            case ROOK -> BLACK_ROOK;
+            case KING -> BLACK_KING;
+            case BISHOP -> BLACK_BISHOP;
+            case KNIGHT -> BLACK_KNIGHT;
+            case QUEEN -> BLACK_QUEEN;
+        };
+        return SUPER_HIGHLIGHT_BG + pieceIcon + RESET_BG_COLOR;
     }
 
     private String getPieceIcon(ChessPiece piece) {
@@ -189,7 +233,7 @@ public class ChessboardDrawer {
         output.append("\n");
     }
 
-    private void lightPopulatedRowHighlighted(StringBuilder output, int row, HashSet<ChessPosition> toHighlight) {
+    private void lightPopulatedRowHighlighted(StringBuilder output, int row, HashSet<ChessPosition> toHighlight, ChessPosition startPosition) {
         addRowStartLabel(output, row);
         int j;
         int jIterator;
@@ -204,7 +248,10 @@ public class ChessboardDrawer {
         while ( j >= 1 && j <= 8) {
             //Even columns dark, odd columns light
             ChessPosition position = new ChessPosition(row, j);
-            if (isEven(j)) {
+            if (position.equals(startPosition)) {
+                output.append(pieceSuperHighlight(board.getPiece(position)));
+            }
+            else if (isEven(j)) {
                 if (toHighlight.contains(position)) {
                     output.append(pieceOnDarkHighlight(board.getPiece(position)));
                 }
@@ -254,7 +301,7 @@ public class ChessboardDrawer {
         output.append("\n");
     }
 
-    private void darkPopulatedRowHighlighted(StringBuilder output, int row, HashSet<ChessPosition> toHighlight) {
+    private void darkPopulatedRowHighlighted(StringBuilder output, int row, HashSet<ChessPosition> toHighlight, ChessPosition startPosition) {
         addRowStartLabel(output, row);
         int j;
         int jIterator;
@@ -269,7 +316,10 @@ public class ChessboardDrawer {
         while ( j >= 1 && j <= 8) {
             //Even columns light, odd columns dark
             ChessPosition position = new ChessPosition(row, j);
-            if (isEven(j)) {
+            if (position.equals(startPosition)) {
+                output.append(pieceSuperHighlight(board.getPiece(position)));
+            }
+            else if (isEven(j)) {
                 if (toHighlight.contains(position)) {
                     output.append(pieceOnLightHighlight(board.getPiece(position)));
                 }
