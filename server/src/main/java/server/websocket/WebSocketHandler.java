@@ -15,7 +15,6 @@ import websocket.messages.ServerMessage;
 import chess.*;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 
 @WebSocket
@@ -28,8 +27,6 @@ public class WebSocketHandler {
     private final ConnectionManager connections = new ConnectionManager();
 
     private final HashMap<Integer, Boolean> activeGames = new HashMap<>();
-
-    private boolean over = false;
 
 
     public WebSocketHandler(GameService gameService, AuthDAO authDAO) {
@@ -56,9 +53,6 @@ public class WebSocketHandler {
         }
     }
 
-    public void declareOver() {
-        over = true;
-    }
 
     private void connect(UserGameCommand command, Session session) throws IOException {
         GameData game = command.getGameData();
@@ -222,37 +216,39 @@ public class WebSocketHandler {
             ServerMessage whiteInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             whiteInCheckmate.setMessage(String.format("%s is in checkmate. %s wins!", white, black));
             connections.broadcast(gameData.gameID(), "", whiteInCheckmate);
-            declareOver();
+            activeGames.replace(gameData.gameID(), false);
             return;
         }
         if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
             ServerMessage blackInCheckmate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInCheckmate.setMessage(String.format("%s is in checkmate. %s wins!", black, white));
             connections.broadcast(gameData.gameID(),"", blackInCheckmate);
-            declareOver();
+            activeGames.replace(gameData.gameID(), false);
             return;
         }
         if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
             ServerMessage whiteInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             whiteInStalemate.setMessage(String.format("%s is in stalemate. Draw.", white));
             connections.broadcast(gameData.gameID(),"", whiteInStalemate);
-            declareOver();
+            activeGames.replace(gameData.gameID(), false);
             return;
         }
         if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             ServerMessage blackInStalemate = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInStalemate.setMessage(String.format("%s is in stalemate. Draw.", black));
             connections.broadcast(gameData.gameID(),"", blackInStalemate);
-            declareOver();
+            activeGames.replace(gameData.gameID(), false);
             return;
         }
         if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
             ServerMessage whiteInCheck = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             whiteInCheck.setMessage(String.format("%s is in check.", white));
+            connections.broadcast(gameData.gameID(), "", whiteInCheck);
         }
         if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
             ServerMessage blackInCheck = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             blackInCheck.setMessage(String.format("%s is in check.", black));
+            connections.broadcast(gameData.gameID(), "", blackInCheck);
         }
     }
 

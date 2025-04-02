@@ -2,7 +2,6 @@ package service;
 
 import chess.ChessGame;
 import chess.ChessMove;
-import chess.InvalidMoveException;
 import dataaccess.DataAccessException;
 import dataaccess.*;
 import exception.ResponseException;

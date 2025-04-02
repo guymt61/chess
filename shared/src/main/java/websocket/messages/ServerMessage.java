@@ -28,50 +28,26 @@ public class ServerMessage {
     }
 
     public void setMessage(String message) {
-        if (serverMessageType != ServerMessageType.NOTIFICATION) {
-            String warningMessage = String.format("WARNING: unexpected message added to a %s ServerMessage", serverMessageType);
-            System.out.println();
-        }
         this.message = message;
     }
 
     public String getMessage() {
-        if (serverMessageType != ServerMessageType.NOTIFICATION) {
-            String warningMessage = String.format("WARNING: unexpected message retrieved from a %s ServerMessage", serverMessageType);
-            System.out.println(warningMessage);
-        }
         return message;
     }
 
     public void setErrorMessage(String errorMessage) {
-        if (serverMessageType != ServerMessageType.ERROR) {
-            String warningMessage = String.format("WARNING: Unexpected error message added to %s ServerMessage", serverMessageType);
-            System.out.println(warningMessage);
-        }
         this.errorMessage = errorMessage;
     }
 
     public String getErrorMessage() {
-        if (serverMessageType != ServerMessageType.ERROR) {
-            String warningMessage = String.format("WARNING: Unexpected error message retrieved from %s ServerMessage", serverMessageType);
-            System.out.println(warningMessage);
-        }
         return errorMessage;
     }
 
     public void setGame(String json) {
-        if (serverMessageType != ServerMessageType.LOAD_GAME) {
-            String warningMessage = String.format("WARNING: Unexpected game added to %s ServerMessage", serverMessageType);
-            System.out.println(warningMessage);
-        }
         this.game = json;
     }
 
     public String getGameJson() {
-        if (serverMessageType != ServerMessageType.LOAD_GAME) {
-            String warningMessage = String.format("WARNING: Unexpected game retrieved from %s ServerMessage", serverMessageType);
-            System.out.println(warningMessage);
-        }
         return game;
     }
 
