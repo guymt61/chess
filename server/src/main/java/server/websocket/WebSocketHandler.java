@@ -75,6 +75,10 @@ public class WebSocketHandler {
         var serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
         serverMessage.setMessage(message);
         connections.broadcast(username, serverMessage);
+        ServerMessage loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        var gson = new GsonBuilder().enableComplexMapKeySerialization().create();
+        loadMessage.setGame(gson.toJson(game));
+        session.getRemote().sendString(new Gson().toJson(loadMessage));
     }
 
     private void leave(UserGameCommand command) throws IOException {
