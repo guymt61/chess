@@ -8,6 +8,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.GameService;
+import service.UserService;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 import chess.*;
@@ -31,11 +32,13 @@ public class WebSocketHandler {
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
-        switch (command.getCommandType()) {
-            case CONNECT -> connect(command, session);
-            case LEAVE -> leave(command);
-            case MAKE_MOVE -> makeMove(command);
-            case RESIGN ->  resign(command);
+        if (validateCommand(command)) {
+            switch (command.getCommandType()) {
+                case CONNECT -> connect(command, session);
+                case LEAVE -> leave(command);
+                case MAKE_MOVE -> makeMove(command);
+                case RESIGN -> resign(command);
+            }
         }
     }
 
@@ -92,7 +95,7 @@ public class WebSocketHandler {
             connections.broadcast("", loadMessage);
             var notificationMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
             notificationMessage.setMessage(prettyMovePrinter(username,move));
-            connections.broadcast(username, notificationMessage);
+            connections.broadcast("", notificationMessage);
             checkGameState(afterMove);
         }
         catch (ResponseException e) {
@@ -158,6 +161,17 @@ public class WebSocketHandler {
     private void assertNotOver() throws Exception{
         if (over) {
             throw new Exception("This game is over");
+        }
+    }
+
+    private boolean validateCommand(UserGameCommand command) throws IOException {
+        try {
+            gameService.verifyAuth(command.getAuthToken());
+            gameService.verifyID(command.getGameID());
+            return true;
+        } catch (Exception e) {
+            errorHandler(command.getUsername(), e);
+            return false;
         }
     }
 

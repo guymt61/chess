@@ -20,10 +20,17 @@ public class GameService {
     private final Random random;
     private final HashSet<Integer> usedIDs;
 
-    private void verifyAuth(String authToken) throws ResponseException {
+    public void verifyAuth(String authToken) throws ResponseException {
         AuthData auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new ResponseException(401, "Error: Unauthorized");
+        }
+    }
+
+    public void verifyID(int gameId) throws ResponseException {
+        GameData game = gameDAO.getGame(gameId);
+        if (game == null) {
+            throw new ResponseException(425, "Error: Invalid game ID");
         }
     }
 
