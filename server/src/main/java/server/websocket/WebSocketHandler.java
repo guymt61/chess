@@ -46,7 +46,9 @@ public class WebSocketHandler {
                 case RESIGN -> resign(command);
             }
         } catch (Exception e) {
-            session.getRemote().sendString(e.getMessage());
+            ServerMessage errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            errorMessage.setErrorMessage(e.getMessage());
+            session.getRemote().sendString(new Gson().toJson(errorMessage));
         }
     }
 
