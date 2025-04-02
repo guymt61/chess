@@ -53,6 +53,8 @@ public class ChessClient {
                 case "quit", "leave" -> quit();
                 case "redraw" -> redraw();
                 case "move" -> makeMove(params);
+                case "resign" -> resign(params);
+                case "highlight" -> highlight(params);
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -81,8 +83,20 @@ public class ChessClient {
         }
         if (state == State.INGAME) {
             return """
-                    quit - exit the current game
                     help - list possible commands
+                    redraw - redraw the chessboard (no highlights)
+                    leave - exit the current game
+                    move <start> <end> ?promotionPiece? - move the piece from start to end, if legal
+                    resign - concede the game to your opponent
+                    highlight <position> - redraw the chessboard, highlighting all moves that can be made from position
+                    """;
+        }
+        if (state == State.OBSERVING) {
+            return """
+                    help - list possible commands
+                    redraw - redraw the chessboard (no highlights)
+                    leave - stop observing the current game
+                    highlight <position> - redraw the chessboard, highlighting all moves that can be made from position
                     """;
         }
         return null;
@@ -362,6 +376,28 @@ public class ChessClient {
             return "";
         }
         throw new ResponseException(407, "Expected: <start> <end> ?promotionPiece?");
+    }
+
+    public String resign(String... params) throws ResponseException{
+        if (state != State.INGAME) {
+            throw new ResponseException(423, "You must be playing a game to use this command");
+        }
+        if (params.length != 0) {
+            throw new ResponseException(407, "Expected no parameters for resign");
+        }
+        ws.resign(authToken, activeGameId);
+        return "You have resigned.";
+    }
+
+    public String highlight(String... params) throws ResponseException {
+        if (state != State.INGAME && state != State.OBSERVING) {
+            throw new ResponseException(423, "You must be playing or observing a game to use this command");
+        }
+        if (params.length == 1) {
+            ChessPosition position = positionFromString(params[0]);
+            return drawer.drawHighlighted(position);
+        }
+        throw new ResponseException(407, "Expected: <position>");
     }
 
     private void assertLoggedIn() throws ResponseException {

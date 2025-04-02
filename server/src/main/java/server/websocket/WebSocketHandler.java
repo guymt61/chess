@@ -81,6 +81,7 @@ public class WebSocketHandler {
             assertNotOver();
         } catch (Exception e) {
             errorHandler(username, e);
+            return;
         }
         ChessMove move = new Gson().fromJson(command.getMove(), ChessMove.class);
         try {
