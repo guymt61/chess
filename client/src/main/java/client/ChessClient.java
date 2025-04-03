@@ -204,7 +204,7 @@ public class ChessClient {
             throw new ResponseException(411, "Error: Please call list to list the games available to join first.");
         }
         if (displayedIDConverter.isEmpty()) {
-            throw new ResponseException(411, "Error: There are active games to join");
+            throw new ResponseException(411, "Error: There are no active games to join");
         }
         if (params.length == 2) {
             try {
@@ -227,7 +227,7 @@ public class ChessClient {
                 String rawString = "Successfully joined game %s controlling %s.%n";
                 String formatted = String.format(rawString, activeGameName, color);
                 drawer = new ChessboardDrawer(activeGame, pov);
-                return formatted + drawer.drawBoard();
+                return formatted;
             } catch (NumberFormatException e) {
                 throw new ResponseException(415, "Error: id must be supplied as an integer");
             }
@@ -244,6 +244,12 @@ public class ChessClient {
         assertLoggedIn();
         assertNotInGame();
         if (params.length == 1) {
+            if (displayedIDConverter == null) {
+                throw new ResponseException(411, "Error: Please call list to list the games available to observe first.");
+            }
+            if (displayedIDConverter.isEmpty()) {
+                throw new ResponseException(411, "Error: There are no active games to observe");
+            }
             try {
                 int displayedID = Integer.parseInt(params[0]);
                 if (displayedIDConverter.get(displayedID) == null) {
@@ -262,7 +268,7 @@ public class ChessClient {
             pov = ChessGame.TeamColor.WHITE;
             drawer = new ChessboardDrawer(activeGame, pov);
             state = State.OBSERVING;
-            return observingMessage + drawer.drawBoard();
+            return observingMessage;
         }
         else {
             throw new ResponseException(407, "Expected: <id>");
@@ -368,7 +374,7 @@ public class ChessClient {
             throw new ResponseException(407, "Expected no parameters for resign");
         }
         ws.resign(authToken, activeGameId);
-        return "You have resigned.";
+        return "";
     }
 
     public String highlight(String... params) throws ResponseException {
@@ -416,7 +422,7 @@ public class ChessClient {
             case 'e' -> 5;
             case 'f' -> 6;
             case 'g' -> 7;
-            case 'h' -> 9;
+            case 'h' -> 8;
             default -> -1;
         };
         if (col == -1) {

@@ -117,13 +117,13 @@ public class WebSocketHandler {
         };
         if ((username.equals(white) && whoseTurn.equals("BLACK")) || (username.equals(black) && whoseTurn.equals("WHITE"))) {
             ServerMessage wrongTurnError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            wrongTurnError.setErrorMessage("It is not your turn");
+            wrongTurnError.setErrorMessage("Cannot move: It is not your turn");
             session.getRemote().sendString(new Gson().toJson(wrongTurnError));
             return;
         }
         if (!activeGames.get(gameId)) {
             ServerMessage gameOverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            gameOverError.setErrorMessage("This game is over.");
+            gameOverError.setErrorMessage("Cannot move: This game is over.");
             session.getRemote().sendString(new Gson().toJson(gameOverError));
             return;
         }
@@ -185,13 +185,19 @@ public class WebSocketHandler {
         int gameId = command.getGameID();
         if (!activeGames.get(gameId)) {
             ServerMessage gameOverError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            gameOverError.setErrorMessage("This game is over.");
+            gameOverError.setErrorMessage("Cannot resign: This game is over.");
             session.getRemote().sendString(new Gson().toJson(gameOverError));
             return;
         }
-        if (username.equals(game.whiteUsername()) || username.equals(game.blackUsername())) {
+        if (username.equals(game.whiteUsername())) {
             ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-            serverMessage.setMessage(String.format("%s has resigned", username));
+            serverMessage.setMessage(String.format("%s has resigned. %s wins!", username, game.blackUsername()));
+            activeGames.replace(gameId, false);
+            connections.broadcast(gameId, "", serverMessage);
+        }
+        else if (username.equals(game.blackUsername())) {
+            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            serverMessage.setMessage(String.format("%s has resigned. %s wins!", username, game.whiteUsername()));
             activeGames.replace(gameId, false);
             connections.broadcast(gameId, "", serverMessage);
         }
