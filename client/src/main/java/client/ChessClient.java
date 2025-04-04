@@ -12,6 +12,8 @@ import requestsresults.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Scanner;
+
 import static ui.EscapeSequences.SET_TEXT_COLOR_RED;
 
 public class ChessClient {
@@ -373,7 +375,9 @@ public class ChessClient {
         if (params.length != 0) {
             throw new ResponseException(407, "Expected no parameters for resign");
         }
-        ws.resign(authToken, activeGameId);
+        if (getConfirmation("resign")) {
+            ws.resign(authToken, activeGameId);
+        }
         return "";
     }
 
@@ -453,6 +457,21 @@ public class ChessClient {
                 ws.connect(authToken, activeGameId);
                 break;
             }
+        }
+    }
+
+    private boolean getConfirmation(String commandMessage) {
+        String prompt = String.format("Are you sure you want to %s? Type confirm to confirm: ", commandMessage);
+        System.out.print(prompt);
+        Scanner scanner = new Scanner(System.in);
+        String line = scanner.nextLine();
+        if (line.equalsIgnoreCase("confirm")) {
+            System.out.printf("%s confirmed.%n", commandMessage);
+            return true;
+        }
+        else {
+            System.out.printf("%s canceled.%n", commandMessage);
+            return false;
         }
     }
 }
